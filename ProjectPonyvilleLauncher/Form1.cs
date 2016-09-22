@@ -2,8 +2,11 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +39,8 @@ namespace ProjectPonyvilleLauncher
 
         // The stopwatch which we will be using to calculate the download speed
         private System.Windows.Forms.Timer timer1;
+
+        private bool cleaned;
 
         public bool bTryInstallPrerequisites { get; private set; }
 
@@ -70,7 +75,8 @@ namespace ProjectPonyvilleLauncher
             WebClient webClient2 = new WebClient();
             try
             {
-                webClient2.DownloadFile(GlobalVariables.server1 + "/api/v1/version/get", Application.StartupPath + "/Temp/version.v");
+                //webClient2.DownloadFile(GlobalVariables.server1 + "/api/v1/version/get", Application.StartupPath + "/Temp/version.v");
+                webClient2.DownloadFile(GlobalVariables.server1 + "/version.php", Application.StartupPath + "/Temp/version.v");
             }
             catch (WebException ex)
             {
@@ -81,6 +87,26 @@ namespace ProjectPonyvilleLauncher
 
             VersionLabel.Text = File.ReadAllText(Application.StartupPath + "/Temp/version.v");
             //VersionLabel.Text = regVersion;
+
+            WebClient webClient3 = new WebClient();
+
+            if (File.Exists(Application.StartupPath + "/Temp/img.jpg"))
+            {
+                File.Delete(Application.StartupPath + "/Temp/img.jpg");
+            }
+
+            try
+            {
+                webClient3.DownloadFileCompleted += new AsyncCompletedEventHandler(WebClient3_DownloadFileCompleted);
+                webClient3.DownloadFileAsync(new Uri("https://derpicdn.net/img/view/2016/9/15/1249483__safe_oc_fallout+equestria_oc-colon-littlepip_oc-colon-blackjack_artist-colon-oo00set00oo.png"), Application.StartupPath + "/Temp/img.jpg");
+            }
+            catch (WebException ex)
+            {
+                Console.WriteLine("Error {0}", ex);
+
+                //button1.Visible = false;
+                //button1.Enabled = false;
+            }
 
             gstate = GameState.NotInstalled;
             UpdateBtnText();
@@ -106,6 +132,20 @@ namespace ProjectPonyvilleLauncher
 
             Console.Write("regv " + regVersion);
             Console.Write("verl " + VersionLabel.Text);
+        }
+
+        private void WebClient3_DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
+        {
+            try
+            {
+                pictureBox1.Image = CreateNonIndexedImage(@Application.StartupPath + "/Temp/img.jpg");
+                //pictureBox1.ImageLocation = GlobalVariables.server1 + "/img.jpg";
+                //pictureBox1.ImageLocation = "https://derpicdn.net/img/view/2016/9/15/1249483__safe_oc_fallout+equestria_oc-colon-littlepip_oc-colon-blackjack_artist-colon-oo00set00oo.png";
+                //button1.Image = CreateNonIndexedImage(Application.StartupPath + "/Temp/img.bmp");
+            }
+            catch
+            {
+            }
         }
 
         private void GetRegVersion()
@@ -706,5 +746,89 @@ namespace ProjectPonyvilleLauncher
         }
 
         // The event that will trigger when the WebClient is completed
+
+        public static Image CreateNonIndexedImage(string path)
+        {
+            using (var sourceImage = Image.FromFile(path))
+            {
+                var targetImage = new Bitmap(sourceImage.Width, sourceImage.Height,
+                  PixelFormat.Format32bppArgb);
+                using (var canvas = Graphics.FromImage(targetImage))
+                {
+                    canvas.DrawImageUnscaled(sourceImage, 0, 0);
+                }
+                return targetImage;
+            }
+        }
+
+        [DllImport("Kernel32.dll", EntryPoint = "CopyMemory")]
+        private extern static void CopyMemory(IntPtr dest, IntPtr src, uint length);
+
+        public static Image CreateIndexedImage(string path)
+        {
+            using (var sourceImage = (Bitmap)Image.FromFile(path))
+            {
+                var targetImage = new Bitmap(sourceImage.Width, sourceImage.Height,
+                  sourceImage.PixelFormat);
+                var sourceData = sourceImage.LockBits(
+                  new Rectangle(0, 0, sourceImage.Width, sourceImage.Height),
+                  ImageLockMode.ReadOnly, sourceImage.PixelFormat);
+                var targetData = targetImage.LockBits(
+                  new Rectangle(0, 0, sourceImage.Width, sourceImage.Height),
+                  ImageLockMode.WriteOnly, targetImage.PixelFormat);
+                CopyMemory(targetData.Scan0, sourceData.Scan0,
+                  (uint)sourceData.Stride * (uint)sourceData.Height);
+                sourceImage.UnlockBits(sourceData);
+                targetImage.UnlockBits(targetData);
+                targetImage.Palette = sourceImage.Palette;
+                return targetImage;
+            }
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            Process.Start("https://derpicdn.net/img/view/2016/9/15/1249483__safe_oc_fallout+equestria_oc-colon-littlepip_oc-colon-blackjack_artist-colon-oo00set00oo.png");
+            this.WindowState = FormWindowState.Minimized;
+        }
+
+        private void Cleanup()
+        {
+            if (File.Exists(Application.StartupPath + "/Temp/img.jpg"))
+            {
+                File.Delete(Application.StartupPath + "/Temp/img.jpg");
+            }
+
+            if (File.Exists(Application.StartupPath + "/Temp/changelog.tmp"))
+            {
+                File.Delete(Application.StartupPath + "/Temp/changelog.tmp");
+            }
+
+            if (File.Exists(Application.StartupPath + "/Temp/version.v"))
+            {
+                File.Delete(Application.StartupPath + "/Temp/version.v");
+            }
+
+            cleaned = true;
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (!cleaned)
+            {
+                e.Cancel = true;
+                Cleanup();
+
+                Close();
+            }
+            //Close();
+        }
+
+        private void VersionLabel_Click(object sender, EventArgs e)
+        {
+            ustate = UpdateState.ReadyToPlay;
+            gstate = GameState.ReadyToPlay;
+
+            UpdateBtnText();
+        }
     }
 }
