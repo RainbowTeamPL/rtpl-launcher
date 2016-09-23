@@ -828,6 +828,8 @@ namespace ProjectPonyvilleLauncher
             ustate = UpdateState.ReadyToPlay;
             gstate = GameState.ReadyToPlay;
 
+            UnlockButton();
+
             UpdateBtnText();
         }
     }
