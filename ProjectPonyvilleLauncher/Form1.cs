@@ -63,7 +63,6 @@ namespace ProjectPonyvilleLauncher
             WebClient webClient = new WebClient();
             try
             {
-                webClient.DownloadFile(GlobalVariables.server1 + "/changelog.php", Application.StartupPath + "/Temp/changelog.tmp");
             }
             catch (WebException ex)
             {
@@ -76,7 +75,6 @@ namespace ProjectPonyvilleLauncher
             try
             {
                 //webClient2.DownloadFile(GlobalVariables.server1 + "/api/v1/version/get", Application.StartupPath + "/Temp/version.v");
-                webClient2.DownloadFile(GlobalVariables.server1 + "/version.php", Application.StartupPath + "/Temp/version.v");
             }
             catch (WebException ex)
             {
