@@ -63,6 +63,7 @@ namespace ProjectPonyvilleLauncher
             WebClient webClient = new WebClient();
             try
             {
+                webClient.DownloadFile(GlobalVariables.server1 + "/changelog.txt", Application.StartupPath + "/Temp/changelog.tmp");
             }
             catch (WebException ex)
             {
@@ -75,6 +76,7 @@ namespace ProjectPonyvilleLauncher
             try
             {
                 //webClient2.DownloadFile(GlobalVariables.server1 + "/api/v1/version/get", Application.StartupPath + "/Temp/version.v");
+                webClient2.DownloadFile("https://rainbowteampl.github.io/rtpl-launcher-serverside/server" + "/version.txt", Application.StartupPath + "/Temp/version.v");
             }
             catch (WebException ex)
             {
