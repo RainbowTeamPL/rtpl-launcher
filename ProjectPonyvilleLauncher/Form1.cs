@@ -140,6 +140,8 @@ namespace ProjectPonyvilleLauncher
             try
             {
                 promoImage1.Image = CreateNonIndexedImage(@Application.StartupPath + "/Temp/img.jpg");
+                //promoImage1.Enabled = false;
+
                 //pictureBox1.ImageLocation = GlobalVariables.server1 + "/img.jpg";
                 //pictureBox1.ImageLocation = "https://derpicdn.net/img/view/2016/9/15/1249483__safe_oc_fallout+equestria_oc-colon-littlepip_oc-colon-blackjack_artist-colon-oo00set00oo.png";
                 //button1.Image = CreateNonIndexedImage(Application.StartupPath + "/Temp/img.bmp");
