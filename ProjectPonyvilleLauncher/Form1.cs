@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -138,7 +139,7 @@ namespace ProjectPonyvilleLauncher
         {
             try
             {
-                pictureBox1.Image = CreateNonIndexedImage(@Application.StartupPath + "/Temp/img.jpg");
+                promoImage1.Image = CreateNonIndexedImage(@Application.StartupPath + "/Temp/img.jpg");
                 //pictureBox1.ImageLocation = GlobalVariables.server1 + "/img.jpg";
                 //pictureBox1.ImageLocation = "https://derpicdn.net/img/view/2016/9/15/1249483__safe_oc_fallout+equestria_oc-colon-littlepip_oc-colon-blackjack_artist-colon-oo00set00oo.png";
                 //button1.Image = CreateNonIndexedImage(Application.StartupPath + "/Temp/img.bmp");
@@ -157,6 +158,7 @@ namespace ProjectPonyvilleLauncher
 
         public enum GameState
         {
+            Unknown = -1,
             NotInstalled = 1,
             NotUpdated = 2,
             ReadyToPlay = 3
@@ -164,6 +166,7 @@ namespace ProjectPonyvilleLauncher
 
         public enum UpdateState
         {
+            Unknown = -1,
             Idle = 1,
             Downloading = 2,
             Unzipping = 3,
@@ -785,7 +788,7 @@ namespace ProjectPonyvilleLauncher
             }
         }
 
-        private void pictureBox1_Click(object sender, EventArgs e)
+        private void promoImage1_Click(object sender, EventArgs e)
         {
             Process.Start("https://derpicdn.net/img/view/2016/9/15/1249483__safe_oc_fallout+equestria_oc-colon-littlepip_oc-colon-blackjack_artist-colon-oo00set00oo.png");
             this.WindowState = FormWindowState.Minimized;
@@ -795,7 +798,11 @@ namespace ProjectPonyvilleLauncher
         {
             if (File.Exists(Application.StartupPath + "/Temp/img.jpg"))
             {
-                File.Delete(Application.StartupPath + "/Temp/img.jpg");
+                try
+                {
+                    File.Delete(Application.StartupPath + "/Temp/img.jpg");
+                }
+                catch { }
             }
 
             if (File.Exists(Application.StartupPath + "/Temp/changelog.tmp"))

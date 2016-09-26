@@ -36,8 +36,8 @@
             this.CurrAction = new System.Windows.Forms.Label();
             this.SettingsButton = new System.Windows.Forms.Button();
             this.ChangelogTextBox = new System.Windows.Forms.TextBox();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.promoImage1 = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.promoImage1)).BeginInit();
             this.SuspendLayout();
             // 
             // VersionLabel
@@ -136,17 +136,17 @@
             this.ChangelogTextBox.TabStop = false;
             this.ChangelogTextBox.Text = "#CHANGELOG";
             // 
-            // pictureBox1
+            // promoImage1
             // 
-            this.pictureBox1.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.pictureBox1.Location = new System.Drawing.Point(337, 79);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(550, 370);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox1.TabIndex = 11;
-            this.pictureBox1.TabStop = false;
-            this.pictureBox1.WaitOnLoad = true;
-            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
+            this.promoImage1.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.promoImage1.Location = new System.Drawing.Point(337, 79);
+            this.promoImage1.Name = "promoImage1";
+            this.promoImage1.Size = new System.Drawing.Size(550, 370);
+            this.promoImage1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.promoImage1.TabIndex = 11;
+            this.promoImage1.TabStop = false;
+            this.promoImage1.WaitOnLoad = true;
+            this.promoImage1.Click += new System.EventHandler(this.promoImage1_Click);
             // 
             // Form1
             // 
@@ -154,7 +154,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.ClientSize = new System.Drawing.Size(899, 505);
-            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.promoImage1);
             this.Controls.Add(this.ChangelogTextBox);
             this.Controls.Add(this.SettingsButton);
             this.Controls.Add(this.CurrAction);
@@ -170,7 +170,7 @@
             this.Text = "ProjectPonyville Launcher";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.promoImage1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -186,7 +186,7 @@
         public System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.Button SettingsButton;
         private System.Windows.Forms.TextBox ChangelogTextBox;
-        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.PictureBox promoImage1;
     }
 }
 
