@@ -12,18 +12,21 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static ProjectPonyvilleLauncher.Enums.Enums;
+using static ProjectPonyvilleLauncher.Functions.Functions;
+using static ProjectPonyvilleLauncher.Servers.Servers;
 
 namespace ProjectPonyvilleLauncher
 {
     public partial class Form1 : Form
     {
-        public bool isGameInstalled = false;
+        public bool isProjectPonyvilleGameInstalled = false;
         public bool isDownloading = false;
         public string regVersion = "0";
 
-        public GameState gstate = GameState.NotInstalled;
+        public GameState gameState = GameState.NotInstalled;
         public Process[] updater = Process.GetProcessesByName("LauncherUpdate");
-        public UpdateState ustate = UpdateState.Idle;
+        public UpdateState updateState = UpdateState.Idle;
 
         public string percentageString = "0%";
         public string downloadedbytes = "0MB/0MB";
@@ -38,15 +41,22 @@ namespace ProjectPonyvilleLauncher
         public uint downloadedPatches = 0;
         public byte[] localMD5;
 
+        //private Game _game;
+
+        public static Game currGame = Game.Unknown;
+
         // The stopwatch which we will be using to calculate the download speed
         private System.Windows.Forms.Timer timer1;
 
-        private bool cleaned;
+        private bool _cleaned;
 
         public bool bTryInstallPrerequisites { get; private set; }
 
         public Form1()
         {
+            GameSelection gameSelection = new GameSelection();
+            gameSelection.ShowDialog();
+
             if (!Directory.Exists(Application.StartupPath + "/Temp"))
             {
                 Directory.CreateDirectory(Application.StartupPath + "/Temp");
@@ -54,41 +64,55 @@ namespace ProjectPonyvilleLauncher
 
             InitializeComponent();
 
-            if (File.Exists(Application.StartupPath + "/ProjectPonyville/ProjectPonyville.exe"))
+            //_game = currGame;
+            //Console.WriteLine(_game);
+
+            if (currGame == Game.ProjectPonyville)
             {
-                isGameInstalled = true;
+                if (File.Exists(Application.StartupPath + "/ProjectPonyville/ProjectPonyville.exe"))
+                {
+                    isProjectPonyvilleGameInstalled = true;
+                }
+
+                GetPPRegVersion();
             }
 
-            GetRegVersion();
+            GetServers();
 
-            WebClient webClient = new WebClient();
-            try
-            {
-                webClient.DownloadFile(GlobalVariables.server1 + "/changelog.txt", Application.StartupPath + "/Temp/changelog.tmp");
-            }
-            catch (WebException ex)
-            {
-                Console.WriteLine("Error: {0}", ex);
-                File.WriteAllText(Application.StartupPath + "/Temp/changelog.tmp", "UNDER MAINTENANCE");
-            }
-            ChangelogTextBox.Text = File.ReadAllText(Application.StartupPath + "/Temp/changelog.tmp");
+            GetChangelog();
 
-            WebClient webClient2 = new WebClient();
-            try
+            GetVersion();
+
+            DownloadPromoImages();
+
+            gameState = GameState.NotInstalled;
+            UpdateBtnText();
+
+            if (regVersion != VersionLabel.Text)
             {
-                //webClient2.DownloadFile(GlobalVariables.server1 + "/api/v1/version/get", Application.StartupPath + "/Temp/version.v");
-                webClient2.DownloadFile("https://rainbowteampl.github.io/rtpl-launcher-serverside/server" + "/version.txt", Application.StartupPath + "/Temp/version.v");
+                if (isProjectPonyvilleGameInstalled)
+                {
+                    gameState = GameState.NotUpdated;
+                    UpdateBtnText();
+                }
+                else
+                {
+                    gameState = GameState.NotInstalled;
+                    UpdateBtnText();
+                }
             }
-            catch (WebException ex)
+            if (regVersion == VersionLabel.Text)
             {
-                Console.WriteLine("Error {0}", ex);
-                File.WriteAllText(Application.StartupPath + "/Temp/version.v", "OFFLINE");
-                InstallBtn.Enabled = false;
+                gameState = GameState.ReadyToPlay;
+                UpdateBtnText();
             }
 
-            VersionLabel.Text = File.ReadAllText(Application.StartupPath + "/Temp/version.v");
-            //VersionLabel.Text = regVersion;
+            Console.Write("regv " + regVersion);
+            Console.Write("verl " + VersionLabel.Text);
+        }
 
+        private void DownloadPromoImages()
+        {
             WebClient webClient3 = new WebClient();
 
             if (File.Exists(Application.StartupPath + "/Temp/img.jpg"))
@@ -108,31 +132,40 @@ namespace ProjectPonyvilleLauncher
                 //button1.Visible = false;
                 //button1.Enabled = false;
             }
+        }
 
-            gstate = GameState.NotInstalled;
-            UpdateBtnText();
-
-            if (regVersion != VersionLabel.Text)
+        private void GetVersion()
+        {
+            WebClient webClient2 = new WebClient();
+            try
             {
-                if (isGameInstalled)
-                {
-                    gstate = GameState.NotUpdated;
-                    UpdateBtnText();
-                }
-                else
-                {
-                    gstate = GameState.NotInstalled;
-                    UpdateBtnText();
-                }
+                //webClient2.DownloadFile(GlobalVariables.server1 + "/api/v1/version/get", Application.StartupPath + "/Temp/version.v");
+                webClient2.DownloadFile("https://rainbowteampl.github.io/rtpl-launcher-serverside/server" + "/version.txt", Application.StartupPath + "/Temp/version.v");
             }
-            if (regVersion == VersionLabel.Text)
+            catch (WebException ex)
             {
-                gstate = GameState.ReadyToPlay;
-                UpdateBtnText();
+                Console.WriteLine("Error {0}", ex);
+                File.WriteAllText(Application.StartupPath + "/Temp/version.v", "OFFLINE");
+                InstallBtn.Enabled = false;
             }
 
-            Console.Write("regv " + regVersion);
-            Console.Write("verl " + VersionLabel.Text);
+            VersionLabel.Text = File.ReadAllText(Application.StartupPath + "/Temp/version.v");
+            //VersionLabel.Text = regVersion;
+        }
+
+        private void GetChangelog()
+        {
+            WebClient webClient = new WebClient();
+            try
+            {
+                webClient.DownloadFile(GlobalVariables.server1 + "/changelog.txt", Application.StartupPath + "/Temp/changelog.tmp");
+            }
+            catch (WebException ex)
+            {
+                Console.WriteLine("Error: {0}", ex);
+                File.WriteAllText(Application.StartupPath + "/Temp/changelog.tmp", "UNDER MAINTENANCE");
+            }
+            ChangelogTextBox.Text = File.ReadAllText(Application.StartupPath + "/Temp/changelog.tmp");
         }
 
         private void WebClient3_DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
@@ -151,31 +184,12 @@ namespace ProjectPonyvilleLauncher
             }
         }
 
-        private void GetRegVersion()
+        private void GetPPRegVersion()
         {
             regVersion = Convert.ToString(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Version", "0"));
         }
 
         private delegate void SetTextCallback(string text);
-
-        public enum GameState
-        {
-            Unknown = -1,
-            NotInstalled = 1,
-            NotUpdated = 2,
-            ReadyToPlay = 3
-        }
-
-        public enum UpdateState
-        {
-            Unknown = -1,
-            Idle = 1,
-            Downloading = 2,
-            Unzipping = 3,
-            Patching = 4,
-            ReadyToPlay = 5,
-            InstallingPrerequisites = 6
-        }
 
         public void UnZip(string file, string location)
         {
@@ -301,6 +315,7 @@ namespace ProjectPonyvilleLauncher
                 Directory.CreateDirectory(Application.StartupPath + "/Tools");
                 Download_Tools();
             }
+
             if (!File.Exists(Application.StartupPath + "\\SevenZipSharp.dll"))
             {
                 File.Copy(Application.StartupPath + "\\Tools\\SevenZipSharp.dll", Application.StartupPath + "\\SevenZipSharp.dll");
@@ -388,7 +403,7 @@ namespace ProjectPonyvilleLauncher
 
         public void UpdateBtnText()
         {
-            switch (gstate)
+            switch (gameState)
             {
                 case GameState.NotInstalled:
                     InstallBtn.Text = "Install";
@@ -406,7 +421,7 @@ namespace ProjectPonyvilleLauncher
 
         public void UpdateStateText()
         {
-            switch (ustate)
+            switch (updateState)
             {
                 case UpdateState.Idle:
                     CurrAction.Text = "";
@@ -435,7 +450,7 @@ namespace ProjectPonyvilleLauncher
             }
         }
 
-        public void Major()
+        public void ProjectPonyvilleMajor()
         {
             Download_Tools();
 
@@ -534,7 +549,7 @@ namespace ProjectPonyvilleLauncher
                 isDownloading = false;
             }
 
-            ustate = UpdateState.Unzipping;
+            updateState = UpdateState.Unzipping;
             UpdateStateText();
             progressBar1.Style = ProgressBarStyle.Marquee;
 
@@ -547,23 +562,30 @@ namespace ProjectPonyvilleLauncher
 
             progressBar1.Style = ProgressBarStyle.Continuous;
 
-            Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Version", VersionLabel.Text);
-            GetRegVersion();
+            if (currGame == Game.ProjectPonyville)
+            {
+                Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Version", VersionLabel.Text);
+                GetPPRegVersion();
+            }
 
-            ustate = UpdateState.Idle;
+            updateState = UpdateState.Idle;
             UpdateStateText();
 
-            ustate = UpdateState.ReadyToPlay;
+            updateState = UpdateState.ReadyToPlay;
             UpdateStateText();
 
-            gstate = GameState.ReadyToPlay;
+            gameState = GameState.ReadyToPlay;
             UpdateBtnText();
             UnlockButton();
         }
 
         private Task UnZipThread()
         {
-            return Task.Run(() => { UnZip(Application.StartupPath + "\\Temp\\ProjectPonyville.7z", Application.StartupPath + "\\ProjectPonyville\\"); });
+            if (currGame == Game.ProjectPonyville)
+            {
+                return Task.Run(() => { UnZip(Application.StartupPath + "\\Temp\\ProjectPonyville.7z", Application.StartupPath + "\\ProjectPonyville\\"); });
+            }
+            return null;
         }
 
         #region leftover
@@ -589,17 +611,6 @@ namespace ProjectPonyvilleLauncher
         }*/
 
         #endregion leftover
-
-        private static string ByteArrayToString(byte[] arrInput)
-        {
-            int i;
-            StringBuilder sOutput = new StringBuilder(arrInput.Length);
-            for (i = 0; i < arrInput.Length; i++)
-            {
-                sOutput.Append(arrInput[i].ToString("X2"));
-            }
-            return sOutput.ToString();
-        }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
@@ -628,7 +639,7 @@ namespace ProjectPonyvilleLauncher
         // The event that will fire whenever the progress of the WebClient is changed
         private void ProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
-            ustate = UpdateState.Downloading;
+            updateState = UpdateState.Downloading;
             // Calculate download speed and output it to labelSpeed.
             speed = string.Format("{0} kb/s", (e.BytesReceived / 1024d / sw.Elapsed.TotalSeconds).ToString("0.00"));
 
@@ -665,6 +676,7 @@ namespace ProjectPonyvilleLauncher
         private void Form1_Load(object sender, EventArgs e)
         {
             CurrAction.Text = "";
+
             if (updater.Length > 0)
             {
                 for (int i = 0; i <= updater.Length; i++)
@@ -672,6 +684,7 @@ namespace ProjectPonyvilleLauncher
                     updater[i].Kill();
                 }
             }
+
             if (!Directory.Exists(Application.StartupPath + "/Temp"))
             {
                 Directory.CreateDirectory(Application.StartupPath + "/Temp");
@@ -687,21 +700,27 @@ namespace ProjectPonyvilleLauncher
 
             bTryInstallPrerequisites = true;
 
-            Major();
+            if (currGame == Game.ProjectPonyville)
+            {
+                ProjectPonyvilleMajor();
+            }
         }
 
         private void TryInstallPrerequisites()
         {
-            ustate = UpdateState.InstallingPrerequisites;
+            updateState = UpdateState.InstallingPrerequisites;
             UpdateStateText();
 
-            ProcessStartInfo prereq = new ProcessStartInfo(Application.StartupPath + "\\ProjectPonyville\\_Redist\\install_redist.cmd");
-            Process.Start(prereq).WaitForExit();
+            if (currGame == Game.ProjectPonyville)
+            {
+                ProcessStartInfo prereq = new ProcessStartInfo(Application.StartupPath + "\\ProjectPonyville\\_Redist\\install_redist.cmd");
+                Process.Start(prereq).WaitForExit();
+            }
         }
 
         private void InstallBtn_Click(object sender, EventArgs e)
         {
-            switch (gstate)
+            switch (gameState)
             {
                 case GameState.NotInstalled:
                     Install();
@@ -709,11 +728,12 @@ namespace ProjectPonyvilleLauncher
                     break;
 
                 case GameState.NotUpdated:
-                    UpdateGame();
+                    UpdatePPGame();
                     BlockButton();
                     break;
 
                 case GameState.ReadyToPlay:
+                    UnlockButton();
                     PlayGame();
                     break;
             }
@@ -731,15 +751,21 @@ namespace ProjectPonyvilleLauncher
 
         private void PlayGame()
         {
-            ProcessStartInfo game = new ProcessStartInfo(Application.StartupPath + "\\ProjectPonyville\\ProjectPonyville.exe", "-game");
-            Process.Start(game);
+            if (currGame == Game.ProjectPonyville)
+            {
+                ProcessStartInfo game = new ProcessStartInfo(Application.StartupPath + "\\ProjectPonyville\\ProjectPonyville.exe", "-game");
+                Process.Start(game);
+            }
 
             this.WindowState = FormWindowState.Minimized;
         }
 
-        private void UpdateGame()
+        private void UpdatePPGame()
         {
-            Major();
+            if (currGame == Game.ProjectPonyville)
+            {
+                ProjectPonyvilleMajor();
+            }
         }
 
         private void SettingsButton_Click(object sender, EventArgs e)
@@ -817,12 +843,12 @@ namespace ProjectPonyvilleLauncher
                 File.Delete(Application.StartupPath + "/Temp/version.v");
             }
 
-            cleaned = true;
+            _cleaned = true;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (!cleaned)
+            if (!_cleaned)
             {
                 e.Cancel = true;
                 Cleanup();
@@ -834,8 +860,8 @@ namespace ProjectPonyvilleLauncher
 
         private void VersionLabel_Click(object sender, EventArgs e)
         {
-            ustate = UpdateState.ReadyToPlay;
-            gstate = GameState.ReadyToPlay;
+            updateState = UpdateState.ReadyToPlay;
+            gameState = GameState.ReadyToPlay;
 
             UnlockButton();
 

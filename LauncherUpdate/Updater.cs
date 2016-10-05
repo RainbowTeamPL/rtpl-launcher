@@ -2,9 +2,11 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace LauncherUpdate
@@ -32,32 +34,50 @@ namespace LauncherUpdate
 
             JSONSchema schema = JsonConvert.DeserializeObject<JSONSchema>(JSONSchemaString);
 
-            //InitializeComponent();
+            InitializeComponent();
+
+            //Width = 10;
+            Height = 10;
+
+            BuildNumberLabel.Text = schema.assets[0].updated_at + " " + schema.tag_name;
 
             if (File.Exists(Application.StartupPath + "/Launcher.exe"))
             {
                 File.Delete(Application.StartupPath + "/Launcher.exe");
             }
 
-            Console.Write("schema: " + schema.assets[0].browser_download_url);
+            Console.Write("schema: " + schema.assets[0].browser_download_url + " " + schema.assets[0].updated_at);
 
             WebClient dl = new WebClient();
-            dl.DownloadFile(schema.assets[0].browser_download_url, Application.StartupPath + "/Launcher.exe");
-            Process.Start(Application.StartupPath + "/Launcher.exe");
+            dl.DownloadFileCompleted += new AsyncCompletedEventHandler(dl_Completed);
+            dl.DownloadFileAsync(new Uri(schema.assets[0].browser_download_url), Application.StartupPath + "/Launcher.exe");
+        }
 
+        private void dl_Completed(object sender, AsyncCompletedEventArgs e)
+        {
+            Process.Start(Application.StartupPath + "/Launcher.exe");
+            Thread.SpinWait(1000);
             Environment.Exit(0);
+        }
+
+        private void Updater_Load(object sender, EventArgs e)
+        {
         }
     }
 
     public class JSONSchema
     {
         public IList<JSONAssets> assets { get; set; }
+
+        public string tag_name { get; set; }
     }
 
     public class JSONAssets
     {
         //[JsonProperty("browser_download_url")]
         public string browser_download_url { get; set; }
+
+        public string updated_at { get; set; }
     }
 
     internal class CustomWebClient : WebClient
