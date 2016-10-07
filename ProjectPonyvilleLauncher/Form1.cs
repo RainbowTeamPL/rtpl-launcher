@@ -28,6 +28,9 @@ namespace ProjectPonyvilleLauncher
         public Process[] updater = Process.GetProcessesByName("LauncherUpdate");
         public UpdateState updateState = UpdateState.Idle;
 
+        public string installDir = @"C:\Program Files\RainbowTeamPL\";
+        public string defDir;
+
         public string percentageString = "0%";
         public string downloadedbytes = "0MB/0MB";
         public string speed = "0kb/s";
@@ -54,6 +57,10 @@ namespace ProjectPonyvilleLauncher
 
         public Form1()
         {
+            SetAccessRule(Application.StartupPath);
+
+            defDir = installDir;
+
             GameSelection gameSelection = new GameSelection();
             gameSelection.ShowDialog();
 
@@ -62,6 +69,8 @@ namespace ProjectPonyvilleLauncher
                 Directory.CreateDirectory(Application.StartupPath + "/Temp");
             }
 
+            GetGameInstallDir();
+
             InitializeComponent();
 
             //_game = currGame;
@@ -69,7 +78,7 @@ namespace ProjectPonyvilleLauncher
 
             if (currGame == Game.ProjectPonyville)
             {
-                if (File.Exists(Application.StartupPath + "/ProjectPonyville/ProjectPonyville.exe"))
+                if (File.Exists(installDir + @"\ProjectPonyville\ProjectPonyville.exe"))
                 {
                     isProjectPonyvilleGameInstalled = true;
                 }
@@ -109,6 +118,11 @@ namespace ProjectPonyvilleLauncher
 
             Console.Write("regv " + regVersion);
             Console.Write("verl " + VersionLabel.Text);
+        }
+
+        private void GetGameInstallDir()
+        {
+            installDir = Convert.ToString(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + currGame.ToString(), "installDir", defDir));
         }
 
         private void DownloadPromoImages()
@@ -195,10 +209,18 @@ namespace ProjectPonyvilleLauncher
         {
             Thread.Sleep(1000);
 
-            SevenZip.SevenZipExtractor.SetLibraryPath(Application.StartupPath + "\\Tools\\7z.dll");
+            SevenZip.SevenZipBase.SetLibraryPath(Application.StartupPath + @"\Tools\7z.dll");
             var zip = new SevenZip.SevenZipExtractor(file);
             zip.EventSynchronization = SevenZip.EventSynchronizationStrategy.AlwaysAsynchronous;
-            zip.ExtractArchive(location);
+            try
+            {
+                zip.ExtractArchive(location);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message.ToString());
+                Application.Exit();
+            }
         }
 
         #region leftover
@@ -301,13 +323,13 @@ namespace ProjectPonyvilleLauncher
 
         private static void Download_Tools()
         {
-            if (Directory.Exists(Application.StartupPath + "/Tools"))
+            if (Directory.Exists(Application.StartupPath + @"\Tools"))
             {
-                if (!File.Exists(Application.StartupPath + "/Tools/tools.exe"))
+                if (!File.Exists(Application.StartupPath + @"\Tools\tools.exe"))
                 {
                     WebClient webClient = new WebClient();
                     webClient.DownloadFile(GlobalVariables.server1 + "/patches/tools.exe", Application.StartupPath + "/Tools/tools.exe");
-                    Process.Start(Application.StartupPath + "/Tools/tools.exe", "-y -gm2 -InstallPath=\"" + Application.StartupPath + "/Tools/\"").WaitForExit();
+                    Process.Start(Application.StartupPath + @"\Tools\tools.exe", "-y -gm2 -InstallPath=\"" + Application.StartupPath + "/Tools/\"").WaitForExit();
                 }
             }
             else
@@ -316,9 +338,9 @@ namespace ProjectPonyvilleLauncher
                 Download_Tools();
             }
 
-            if (!File.Exists(Application.StartupPath + "\\SevenZipSharp.dll"))
+            if (!File.Exists(Application.StartupPath + @"\SevenZipSharp.dll"))
             {
-                File.Copy(Application.StartupPath + "\\Tools\\SevenZipSharp.dll", Application.StartupPath + "\\SevenZipSharp.dll");
+                File.Copy(Application.StartupPath + @"\Tools\SevenZipSharp.dll", Application.StartupPath + @"\SevenZipSharp.dll");
             }
         }
 
@@ -454,9 +476,28 @@ namespace ProjectPonyvilleLauncher
         {
             Download_Tools();
 
-            if (File.Exists(Application.StartupPath + "\\ProjectPonyville\\ProjectPonyville.exe"))
+            if (File.Exists(installDir + @"\ProjectPonyville\ProjectPonyville.exe"))
             {
-                Directory.Delete(Application.StartupPath + "\\ProjectPonyville", true);
+                Directory.Delete(installDir + @"\ProjectPonyville", true);
+            }
+            else
+            {
+                FolderBrowserDialog fbd = new FolderBrowserDialog();
+                fbd.ShowNewFolderButton = true;
+                fbd.Description = "Select Installation Folder";
+                fbd.SelectedPath = defDir;
+                fbd.RootFolder = Environment.SpecialFolder.MyComputer;
+
+                var res = fbd.ShowDialog();
+
+                if (res == DialogResult.Cancel)
+                {
+                    Application.Exit();
+                }
+
+                installDir = fbd.SelectedPath;
+                SetAccessRule(installDir);
+                Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + currGame.ToString(), "installDir", installDir);
             }
 
             string[] servers = new string[3];
@@ -583,7 +624,7 @@ namespace ProjectPonyvilleLauncher
         {
             if (currGame == Game.ProjectPonyville)
             {
-                return Task.Run(() => { UnZip(Application.StartupPath + "\\Temp\\ProjectPonyville.7z", Application.StartupPath + "\\ProjectPonyville\\"); });
+                return Task.Run(() => { UnZip(Application.StartupPath + "\\Temp\\ProjectPonyville.7z", installDir + "\\ProjectPonyville\\"); });
             }
             return null;
         }
@@ -713,8 +754,12 @@ namespace ProjectPonyvilleLauncher
 
             if (currGame == Game.ProjectPonyville)
             {
-                ProcessStartInfo prereq = new ProcessStartInfo(Application.StartupPath + "\\ProjectPonyville\\_Redist\\install_redist.cmd");
-                Process.Start(prereq).WaitForExit();
+                ProcessStartInfo prereq = new ProcessStartInfo(Application.StartupPath + @"\ProjectPonyville\_Redist\install_redist.cmd");
+                try
+                {
+                    Process.Start(prereq).WaitForExit();
+                }
+                catch { }
             }
         }
 
@@ -753,7 +798,7 @@ namespace ProjectPonyvilleLauncher
         {
             if (currGame == Game.ProjectPonyville)
             {
-                ProcessStartInfo game = new ProcessStartInfo(Application.StartupPath + "\\ProjectPonyville\\ProjectPonyville.exe", "-game");
+                ProcessStartInfo game = new ProcessStartInfo(installDir + @"\ProjectPonyville\ProjectPonyville.exe", "-game");
                 Process.Start(game);
             }
 
@@ -853,7 +898,11 @@ namespace ProjectPonyvilleLauncher
                 e.Cancel = true;
                 Cleanup();
 
-                Close();
+                try
+                {
+                    Close();
+                }
+                catch { }
             }
             //Close();
         }

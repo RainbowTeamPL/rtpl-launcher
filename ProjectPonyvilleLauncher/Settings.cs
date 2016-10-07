@@ -28,6 +28,7 @@ namespace ProjectPonyvilleLauncher
         private void DeleteAll()
         {
             Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Version", "0");
+            //Registry.CurrentUser.DeleteSubKey("Software\\RainbowTeamPL\\ProjectPonyville\\installDir", false);
 
             try
             {

@@ -19,7 +19,7 @@ namespace ProjectPonyvilleLauncher
 
         private void PPGameBtn_Click(object sender, EventArgs e)
         {
-            Form1.currGame = Form1.Game.ProjectPonyville;
+            Form1.currGame = Enums.Enums.Game.ProjectPonyville;
             this.Close();
         }
     }
