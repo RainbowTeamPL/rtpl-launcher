@@ -19,6 +19,7 @@ namespace ProjectPonyvilleLauncher
             {
                 DeleteAll();
                 MessageBox.Show("Launcher needs to be re-opened", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Form1._restart = true;
                 Application.Exit();
             }
             else
@@ -46,11 +47,11 @@ namespace ProjectPonyvilleLauncher
             {
             }
 
-            if (Directory.Exists(Application.StartupPath + "/ProjectPonyville"))
+            if (Directory.Exists(Form1.installDir + @"\ProjectPonyville"))
             {
                 try
                 {
-                    Directory.Delete(Application.StartupPath + "/ProjectPonyville", true);
+                    Directory.Delete(Form1.installDir + @"\ProjectPonyville", true);
                 }
                 catch
                 {

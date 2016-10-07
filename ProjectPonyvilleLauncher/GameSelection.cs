@@ -22,5 +22,10 @@ namespace ProjectPonyvilleLauncher
             Form1.currGame = Enums.Enums.Game.ProjectPonyville;
             this.Close();
         }
+
+        private void GameSelection_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

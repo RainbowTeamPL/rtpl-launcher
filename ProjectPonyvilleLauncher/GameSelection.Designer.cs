@@ -46,10 +46,15 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(274, 261);
+            this.ControlBox = false;
             this.Controls.Add(this.PPGameBtn);
             this.Name = "GameSelection";
+            this.ShowIcon = false;
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Select Game...";
+            this.TopMost = true;
+            this.Load += new System.EventHandler(this.GameSelection_Load);
             this.ResumeLayout(false);
 
         }

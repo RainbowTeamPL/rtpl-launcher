@@ -28,7 +28,7 @@ namespace ProjectPonyvilleLauncher
         public Process[] updater = Process.GetProcessesByName("LauncherUpdate");
         public UpdateState updateState = UpdateState.Idle;
 
-        public string installDir = @"C:\Program Files\RainbowTeamPL\";
+        public static string installDir = @"C:\Program Files\RainbowTeamPL\";
         public string defDir;
 
         public string percentageString = "0%";
@@ -52,6 +52,7 @@ namespace ProjectPonyvilleLauncher
         private System.Windows.Forms.Timer timer1;
 
         private bool _cleaned;
+        public static bool _restart;
 
         public bool bTryInstallPrerequisites { get; private set; }
 
@@ -122,7 +123,7 @@ namespace ProjectPonyvilleLauncher
 
         private void GetGameInstallDir()
         {
-            installDir = Convert.ToString(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + currGame.ToString(), "installDir", defDir));
+            installDir = Convert.ToString(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL", "installDir", defDir));
         }
 
         private void DownloadPromoImages()
@@ -328,7 +329,7 @@ namespace ProjectPonyvilleLauncher
                 if (!File.Exists(Application.StartupPath + @"\Tools\tools.exe"))
                 {
                     WebClient webClient = new WebClient();
-                    webClient.DownloadFile(GlobalVariables.server1 + "/patches/tools.exe", Application.StartupPath + "/Tools/tools.exe");
+                    webClient.DownloadFile("https://github.com/RainbowTeamPL/rtpl-launcher/raw/master/_StaticDownload/Tools/tools.exe", Application.StartupPath + "/Tools/tools.exe");
                     Process.Start(Application.StartupPath + @"\Tools\tools.exe", "-y -gm2 -InstallPath=\"" + Application.StartupPath + "/Tools/\"").WaitForExit();
                 }
             }
@@ -484,7 +485,7 @@ namespace ProjectPonyvilleLauncher
             {
                 FolderBrowserDialog fbd = new FolderBrowserDialog();
                 fbd.ShowNewFolderButton = true;
-                fbd.Description = "Select Installation Folder";
+                fbd.Description = "Select installation folder for " + currGame.ToString() + ":";
                 fbd.SelectedPath = defDir;
                 fbd.RootFolder = Environment.SpecialFolder.MyComputer;
 
@@ -497,7 +498,7 @@ namespace ProjectPonyvilleLauncher
 
                 installDir = fbd.SelectedPath;
                 SetAccessRule(installDir);
-                Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + currGame.ToString(), "installDir", installDir);
+                Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL", "installDir", installDir);
             }
 
             string[] servers = new string[3];
@@ -893,6 +894,14 @@ namespace ProjectPonyvilleLauncher
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (_restart)
+            {
+                ProcessStartInfo p = new ProcessStartInfo(Application.ExecutablePath);
+                Process.Start(p);
+
+                _restart = false;
+            }
+
             if (!_cleaned)
             {
                 e.Cancel = true;
