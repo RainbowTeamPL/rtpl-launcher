@@ -30,6 +30,7 @@ namespace ProjectPonyvilleLauncher
 
         public static string installDir = @"C:\Program Files\RainbowTeamPL\";
         public string defDir;
+        private const string github = "https://rainbowteampl.github.io/rtpl-launcher-serverside/server";
 
         public string percentageString = "0%";
         public string downloadedbytes = "0MB/0MB";
@@ -155,7 +156,7 @@ namespace ProjectPonyvilleLauncher
             try
             {
                 //webClient2.DownloadFile(GlobalVariables.server1 + "/api/v1/version/get", Application.StartupPath + "/Temp/version.v");
-                webClient2.DownloadFile("https://rainbowteampl.github.io/rtpl-launcher-serverside/server" + "/version.txt", Application.StartupPath + "/Temp/version.v");
+                webClient2.DownloadFile(github + "/version.txt", Application.StartupPath + "/Temp/version.v");
             }
             catch (WebException ex)
             {
@@ -173,7 +174,7 @@ namespace ProjectPonyvilleLauncher
             WebClient webClient = new WebClient();
             try
             {
-                webClient.DownloadFile(GlobalVariables.server1 + "/changelog.txt", Application.StartupPath + "/Temp/changelog.tmp");
+                webClient.DownloadFile(github + "/changelog.txt", Application.StartupPath + "/Temp/changelog.tmp");
             }
             catch (WebException ex)
             {
@@ -896,7 +897,7 @@ namespace ProjectPonyvilleLauncher
         {
             if (_restart)
             {
-                ProcessStartInfo p = new ProcessStartInfo(Application.ExecutablePath);
+                ProcessStartInfo p = new ProcessStartInfo(Application.StartupPath + @"\LauncherUpdate.exe");
                 Process.Start(p);
 
                 _restart = false;
