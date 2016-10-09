@@ -698,10 +698,15 @@ namespace ProjectPonyvilleLauncher
         (e.BytesReceived / 1024d / 1024d).ToString("0.00"),
         (e.TotalBytesToReceive / 1024d / 1024d).ToString("0.00"));
             //UpdateStateText();
-            CurrAction.Text = "Downloading " + currFileName + ", " + string.Format("{0} MB / {1} MB",
-                (e.BytesReceived / 1024d / 1024d).ToString("0.00"),
-                (e.TotalBytesToReceive / 1024d / 1024d).ToString("0.00")) + " (" + string.Format("{0} kb/s", (e.BytesReceived / 1024d / sw.Elapsed.TotalSeconds).ToString("0.00")) + ") " + e.ProgressPercentage.ToString() + "%";
-            progressBar1.Value = e.ProgressPercentage;
+
+            //CurrAction.Text = "Downloading " + currFileName + ", " + string.Format("{0} MB / {1} MB",
+            //    (e.BytesReceived / 1024d / 1024d).ToString("0.00"),
+            //    (e.TotalBytesToReceive / 1024d / 1024d).ToString("0.00")) + " (" + string.Format("{0} kb/s", (e.BytesReceived / 1024d / sw.Elapsed.TotalSeconds).ToString("0.00")) + ") " + e.ProgressPercentage.ToString() + "%";
+
+            CurrAction.Text = "Downloading: " + currFileName + ", " + downloadedbytes + " (" + speed + ") " + percentageString;
+
+            //progressBar1.Value = e.ProgressPercentage;
+            progressBar1.Value = percentage;
 
             //label1.Text = downloadedbytes;
             //label2.Text = speed;
