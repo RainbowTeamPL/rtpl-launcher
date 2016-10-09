@@ -66,9 +66,9 @@ namespace ProjectPonyvilleLauncher
             GameSelection gameSelection = new GameSelection();
             gameSelection.ShowDialog();
 
-            if (!Directory.Exists(Application.StartupPath + "/Temp"))
+            if (!Directory.Exists(Application.StartupPath + @"\Temp"))
             {
-                Directory.CreateDirectory(Application.StartupPath + "/Temp");
+                Directory.CreateDirectory(Application.StartupPath + @"\Temp");
             }
 
             GetGameInstallDir();
@@ -174,21 +174,21 @@ namespace ProjectPonyvilleLauncher
             WebClient webClient = new WebClient();
             try
             {
-                webClient.DownloadFile(github + "/changelog.txt", Application.StartupPath + "/Temp/changelog.tmp");
+                webClient.DownloadFile(github + "/changelog.txt", Application.StartupPath + @"\Temp\changelog.tmp");
             }
             catch (WebException ex)
             {
                 Console.WriteLine("Error: {0}", ex);
-                File.WriteAllText(Application.StartupPath + "/Temp/changelog.tmp", "UNDER MAINTENANCE");
+                File.WriteAllText(Application.StartupPath + @"\Temp\changelog.tmp", "UNDER MAINTENANCE");
             }
-            ChangelogTextBox.Text = File.ReadAllText(Application.StartupPath + "/Temp/changelog.tmp");
+            ChangelogTextBox.Text = File.ReadAllText(Application.StartupPath + @"\Temp\changelog.tmp");
         }
 
         private void WebClient3_DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
         {
             try
             {
-                promoImage1.Image = CreateNonIndexedImage(@Application.StartupPath + "/Temp/img.jpg");
+                promoImage1.Image = CreateNonIndexedImage(@Application.StartupPath + @"\Temp\img.jpg");
                 //promoImage1.Enabled = false;
 
                 //pictureBox1.ImageLocation = GlobalVariables.server1 + "/img.jpg";
@@ -336,7 +336,7 @@ namespace ProjectPonyvilleLauncher
             }
             else
             {
-                Directory.CreateDirectory(Application.StartupPath + "/Tools");
+                Directory.CreateDirectory(Application.StartupPath + @"\Tools");
                 Download_Tools();
             }
 
@@ -523,7 +523,7 @@ namespace ProjectPonyvilleLauncher
             }
 
             urlAddress = urlAddress + "/patches/ProjectPonyville.7z";
-            location = Application.StartupPath + "\\Temp\\ProjectPonyville.7z";
+            location = Application.StartupPath + @"\Temp\ProjectPonyville.7z";
             currFileName = "ProjectPonyville.7z";
             //this.dl = new Thread(new ThreadStart(this.DownloadFile));
             //this.dl.Start();
@@ -626,7 +626,7 @@ namespace ProjectPonyvilleLauncher
         {
             if (currGame == Game.ProjectPonyville)
             {
-                return Task.Run(() => { UnZip(Application.StartupPath + "\\Temp\\ProjectPonyville.7z", installDir + "\\ProjectPonyville\\"); });
+                return Task.Run(() => { UnZip(Application.StartupPath + @"\Temp\ProjectPonyville.7z", installDir + @"\ProjectPonyville\"); });
             }
             return null;
         }
@@ -728,17 +728,17 @@ namespace ProjectPonyvilleLauncher
                 }
             }
 
-            if (!Directory.Exists(Application.StartupPath + "/Temp"))
+            if (!Directory.Exists(Application.StartupPath + @"\Temp"))
             {
-                Directory.CreateDirectory(Application.StartupPath + "/Temp");
+                Directory.CreateDirectory(Application.StartupPath + @"\Temp");
             }
         }
 
         private void Install()
         {
-            if (!Directory.Exists(Application.StartupPath + "/Temp"))
+            if (!Directory.Exists(Application.StartupPath + @"\Temp"))
             {
-                Directory.CreateDirectory(Application.StartupPath + "/Temp");
+                Directory.CreateDirectory(Application.StartupPath + @"\Temp");
             }
 
             bTryInstallPrerequisites = true;
@@ -871,23 +871,23 @@ namespace ProjectPonyvilleLauncher
 
         private void Cleanup()
         {
-            if (File.Exists(Application.StartupPath + "/Temp/img.jpg"))
+            if (File.Exists(Application.StartupPath + @"\Temp\img.jpg"))
             {
                 try
                 {
-                    File.Delete(Application.StartupPath + "/Temp/img.jpg");
+                    File.Delete(Application.StartupPath + @"\Temp\img.jpg");
                 }
                 catch { }
             }
 
-            if (File.Exists(Application.StartupPath + "/Temp/changelog.tmp"))
+            if (File.Exists(Application.StartupPath + @"\Temp\changelog.tmp"))
             {
-                File.Delete(Application.StartupPath + "/Temp/changelog.tmp");
+                File.Delete(Application.StartupPath + @"\Temp\changelog.tmp");
             }
 
-            if (File.Exists(Application.StartupPath + "/Temp/version.v"))
+            if (File.Exists(Application.StartupPath + @"\Temp\version.v"))
             {
-                File.Delete(Application.StartupPath + "/Temp/version.v");
+                File.Delete(Application.StartupPath + @"\Temp\version.v");
             }
 
             _cleaned = true;
