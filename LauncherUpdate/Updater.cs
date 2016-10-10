@@ -16,6 +16,7 @@ namespace LauncherUpdate
         //public string downloadUrl = "http://rtpl.dynu.com:3414/projectponyville/patches/launcher/Launcher.exe";
 
         private const string JSONSchemaURL = "https://api.github.com/repos/RainbowTeamPL/rtpl-launcher/releases/latest";
+        public bool is64 = Environment.Is64BitProcess;
 
         public string JSONSchemaString;
 
@@ -39,25 +40,30 @@ namespace LauncherUpdate
             //Width = 10;
             Height = 10;
 
-            File.WriteAllText(Application.StartupPath + "/Temp/version.v", schema.tag_name);
+            if (!Directory.Exists(Application.StartupPath + @"\Temp"))
+            {
+                Directory.CreateDirectory(Application.StartupPath + @"\Temp");
+            }
+
+            File.WriteAllText(Application.StartupPath + @"\Temp\version.v", schema.tag_name);
 
             BuildNumberLabel.Text = schema.assets[0].updated_at + " " + schema.tag_name;
 
-            if (File.Exists(Application.StartupPath + "/Launcher.exe"))
+            if (File.Exists(Application.StartupPath + @"\Launcher.exe"))
             {
-                File.Delete(Application.StartupPath + "/Launcher.exe");
+                File.Delete(Application.StartupPath + @"\Launcher.exe");
             }
 
             Console.Write("schema: " + schema.assets[0].browser_download_url + " " + schema.assets[0].updated_at);
 
             WebClient dl = new WebClient();
             dl.DownloadFileCompleted += new AsyncCompletedEventHandler(dl_Completed);
-            dl.DownloadFileAsync(new Uri(schema.assets[0].browser_download_url), Application.StartupPath + "/Launcher.exe");
+            dl.DownloadFileAsync(new Uri(schema.assets[0].browser_download_url), Application.StartupPath + @"\Launcher.exe");
         }
 
         private void dl_Completed(object sender, AsyncCompletedEventArgs e)
         {
-            Process.Start(Application.StartupPath + "/Launcher.exe");
+            Process.Start(Application.StartupPath + @"\Launcher.exe");
             Thread.SpinWait(1000);
             Environment.Exit(0);
         }

@@ -56,7 +56,7 @@ namespace ProjectPonyvilleLauncher
         public static bool _restart;
         private string _archivePassword;
 
-        public bool is64 = Environment.Is64BitOperatingSystem;
+        public bool is64 = Environment.Is64BitProcess;
 
         public bool bTryInstallPrerequisites { get; private set; }
 
@@ -77,6 +77,8 @@ namespace ProjectPonyvilleLauncher
             GetGameInstallDir();
 
             InitializeComponent();
+
+            label1.Text = currGame.ToString() + " Launcher";
 
             //_game = currGame;
             //Console.WriteLine(_game);
@@ -172,7 +174,12 @@ namespace ProjectPonyvilleLauncher
             //    InstallBtn.Enabled = false;
             //}
 
-            VersionLabel.Text = File.ReadAllText(Application.StartupPath + "/Temp/version.v");
+            try
+            {
+                VersionLabel.Text = File.ReadAllText(Application.StartupPath + "/Temp/version.v");
+            }
+            catch { }
+
             //VersionLabel.Text = regVersion;
         }
 
@@ -228,6 +235,8 @@ namespace ProjectPonyvilleLauncher
                     SevenZip.SevenZipBase.SetLibraryPath(Application.StartupPath + @"\Tools\7z_x86.dll"); //32-bit system
                     break;
             }
+
+            Console.WriteLine(is64);
 
             //SevenZip.SevenZipBase.SetLibraryPath(Application.StartupPath + @"\Tools\7z.dll"); //old 64bit only
 
@@ -751,6 +760,11 @@ namespace ProjectPonyvilleLauncher
                 {
                     updater[i].Kill();
                 }
+            }
+
+            if (currGame == Game.Unknown)
+            {
+                Close();
             }
 
             if (!Directory.Exists(Application.StartupPath + @"\Temp"))

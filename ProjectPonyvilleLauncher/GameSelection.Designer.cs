@@ -48,6 +48,7 @@
             this.ClientSize = new System.Drawing.Size(274, 261);
             this.ControlBox = false;
             this.Controls.Add(this.PPGameBtn);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Name = "GameSelection";
             this.ShowIcon = false;
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
