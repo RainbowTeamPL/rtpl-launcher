@@ -39,6 +39,8 @@ namespace LauncherUpdate
             //Width = 10;
             Height = 10;
 
+            File.WriteAllText(Application.StartupPath + "/Temp/version.v", schema.tag_name);
+
             BuildNumberLabel.Text = schema.assets[0].updated_at + " " + schema.tag_name;
 
             if (File.Exists(Application.StartupPath + "/Launcher.exe"))

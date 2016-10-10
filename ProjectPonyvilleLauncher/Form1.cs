@@ -30,11 +30,11 @@ namespace ProjectPonyvilleLauncher
 
         public static string installDir = @"C:\Program Files\RainbowTeamPL\";
         public string defDir;
-        private const string github = "https://rainbowteampl.github.io/rtpl-launcher-serverside/server";
+        //private const string github = "https://rainbowteampl.github.io/rtpl-launcher-serverside/server";
 
         public string percentageString = "0%";
-        public string downloadedbytes = "0MB/0MB";
-        public string speed = "0kb/s";
+        public string downloadedbytes = "0 MB/0 MB";
+        public string speed = "0 kb/s";
         public string currFileName = "";
         public int percentage = 0;
         private Stopwatch sw = new Stopwatch();
@@ -54,6 +54,9 @@ namespace ProjectPonyvilleLauncher
 
         private bool _cleaned;
         public static bool _restart;
+        private string _archivePassword;
+
+        public bool is64 = Environment.Is64BitOperatingSystem;
 
         public bool bTryInstallPrerequisites { get; private set; }
 
@@ -89,6 +92,8 @@ namespace ProjectPonyvilleLauncher
             }
 
             GetServers();
+
+            _archivePassword = schema.password;
 
             GetChangelog();
 
@@ -152,18 +157,20 @@ namespace ProjectPonyvilleLauncher
 
         private void GetVersion()
         {
-            WebClient webClient2 = new WebClient();
-            try
-            {
-                //webClient2.DownloadFile(GlobalVariables.server1 + "/api/v1/version/get", Application.StartupPath + "/Temp/version.v");
-                webClient2.DownloadFile(github + "/version.txt", Application.StartupPath + "/Temp/version.v");
-            }
-            catch (WebException ex)
-            {
-                Console.WriteLine("Error {0}", ex);
-                File.WriteAllText(Application.StartupPath + "/Temp/version.v", "OFFLINE");
-                InstallBtn.Enabled = false;
-            }
+            //MOVED TO UPDATER
+
+            //WebClient webClient2 = new WebClient();
+            //try
+            //{
+            //    //webClient2.DownloadFile(GlobalVariables.server1 + "/api/v1/version/get", Application.StartupPath + "/Temp/version.v");
+            //    webClient2.DownloadFile(GlobalVariables.github + "/version.txt", Application.StartupPath + "/Temp/version.v");
+            //}
+            //catch (WebException ex)
+            //{
+            //    Console.WriteLine("Error {0}", ex);
+            //    File.WriteAllText(Application.StartupPath + "/Temp/version.v", "OFFLINE");
+            //    InstallBtn.Enabled = false;
+            //}
 
             VersionLabel.Text = File.ReadAllText(Application.StartupPath + "/Temp/version.v");
             //VersionLabel.Text = regVersion;
@@ -174,7 +181,7 @@ namespace ProjectPonyvilleLauncher
             WebClient webClient = new WebClient();
             try
             {
-                webClient.DownloadFile(github + "/changelog.txt", Application.StartupPath + @"\Temp\changelog.tmp");
+                webClient.DownloadFile(GlobalVariables.github + "/changelog.txt", Application.StartupPath + @"\Temp\changelog.tmp");
             }
             catch (WebException ex)
             {
@@ -211,9 +218,22 @@ namespace ProjectPonyvilleLauncher
         {
             Thread.Sleep(1000);
 
-            SevenZip.SevenZipBase.SetLibraryPath(Application.StartupPath + @"\Tools\7z.dll");
-            var zip = new SevenZip.SevenZipExtractor(file);
+            switch (is64)
+            {
+                case true:
+                    SevenZip.SevenZipBase.SetLibraryPath(Application.StartupPath + @"\Tools\7z.dll"); //64-bit system
+                    break;
+
+                case false:
+                    SevenZip.SevenZipBase.SetLibraryPath(Application.StartupPath + @"\Tools\7z_x86.dll"); //32-bit system
+                    break;
+            }
+
+            //SevenZip.SevenZipBase.SetLibraryPath(Application.StartupPath + @"\Tools\7z.dll"); //old 64bit only
+
+            var zip = new SevenZip.SevenZipExtractor(file, _archivePassword); //added password
             zip.EventSynchronization = SevenZip.EventSynchronizationStrategy.AlwaysAsynchronous;
+
             try
             {
                 zip.ExtractArchive(location);
