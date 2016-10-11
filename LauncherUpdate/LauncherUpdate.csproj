@@ -129,7 +129,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "C:\_Git\rtpl-launcher\LauncherUpdate\bin\x86\Debug\LauncherUpdate.exe" "C:\_Git\rtpl-launcher\_StaticDownload\LauncherUpdate\LauncherUpdate.exe"</PostBuildEvent>
+    <PostBuildEvent>copy "C:\_Git\rtpl-launcher\LauncherUpdate\bin\x86\Release\LauncherUpdate.exe" "C:\_Git\rtpl-launcher\_StaticDownload\LauncherUpdate\LauncherUpdate.exe"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

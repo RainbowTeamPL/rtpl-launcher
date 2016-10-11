@@ -24,6 +24,17 @@ namespace LauncherUpdate
 
         public Updater()
         {
+            if (!File.Exists(Application.StartupPath + @"\Newtonsoft.Json.dll"))
+            {
+                CustomWebClient dlldl = new CustomWebClient();
+
+                try
+                {
+                    dlldl.DownloadFile("https://github.com/RainbowTeamPL/rtpl-launcher/raw/master/_StaticDownload/LauncherUpdate/Newtonsoft.Json.dll", Application.StartupPath + @"\Newtonsoft.Json.dll");
+                }
+                catch { }
+            }
+
             CustomWebClient wc = new CustomWebClient();
 
             try
