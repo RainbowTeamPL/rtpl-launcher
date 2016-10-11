@@ -57,6 +57,7 @@ namespace ProjectPonyvilleLauncher
         private string _archivePassword;
 
         public bool is64 = Environment.Is64BitProcess;
+        public bool force32bitBuild = false;
 
         public bool bTryInstallPrerequisites { get; private set; }
 
@@ -217,6 +218,7 @@ namespace ProjectPonyvilleLauncher
         private void GetPPRegVersion()
         {
             regVersion = Convert.ToString(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Version", "0"));
+            force32bitBuild = Convert.ToBoolean(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "force32bitBuild", false));
         }
 
         private delegate void SetTextCallback(string text);
@@ -553,20 +555,30 @@ namespace ProjectPonyvilleLauncher
                     break;
             }
 
-            switch (is64)
+            if (force32bitBuild)
             {
-                case true:
-                    urlAddress = urlAddress + "/patches/ProjectPonyville.7z";
-                    break;
+                urlAddress = urlAddress + "/patches/ProjectPonyville32.7z";
+                currFileName = "ProjectPonyville32.7z";
+            }
+            else
+            {
+                switch (is64)
+                {
+                    case true:
+                        urlAddress = urlAddress + "/patches/ProjectPonyville.7z";
+                        currFileName = "ProjectPonyville.7z";
+                        break;
 
-                case false:
-                    urlAddress = urlAddress + "/patches/ProjectPonyville32.7z";
-                    break;
+                    case false:
+                        urlAddress = urlAddress + "/patches/ProjectPonyville32.7z";
+                        currFileName = "ProjectPonyville32.7z";
+                        break;
+                }
             }
 
             //urlAddress = urlAddress + "/patches/ProjectPonyville.7z";
             location = Application.StartupPath + @"\Temp\ProjectPonyville.7z";
-            currFileName = "ProjectPonyville.7z";
+            //currFileName = "ProjectPonyville.7z";
             //this.dl = new Thread(new ThreadStart(this.DownloadFile));
             //this.dl.Start();
             DownloadFileWUnzip();

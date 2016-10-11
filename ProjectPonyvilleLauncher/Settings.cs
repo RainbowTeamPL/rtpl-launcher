@@ -69,6 +69,12 @@ namespace ProjectPonyvilleLauncher
         private void Settings_Load(object sender, EventArgs e)
         {
             comboBox1.SelectedItem = Convert.ToString(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Server", "rtpl.dynu.com"));
+            checkBox1.Checked = Convert.ToBoolean(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "force32bitBuild", false));
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "force32bitBuild", checkBox1.Checked);
         }
     }
 }
