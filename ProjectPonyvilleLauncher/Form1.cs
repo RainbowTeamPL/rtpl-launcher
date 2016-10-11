@@ -536,6 +536,8 @@ namespace ProjectPonyvilleLauncher
             servers[1] = GlobalVariables.server2;
             servers[2] = GlobalVariables.server3;
 
+            CheckEmptyServer();
+
             switch (Convert.ToString(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Server", "rtpl.dynu.com")))
             {
                 case "rtpl.dynu.com":
@@ -581,6 +583,24 @@ namespace ProjectPonyvilleLauncher
             //DownloadForm dlform = new DownloadForm();
             //dlform.Show();
             //DownloadFile("http://marcinbebenek.capriolo.pl/tf/sound/rainbowteampl/events/dispencer/dispencersong.mp3", Application.StartupPath + "\\Temp\\CD_Major.zip");
+        }
+
+        private void CheckEmptyServer()
+        {
+            if (Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Server", null) == null)
+            {
+                MessageBox.Show("Please select server in Settings.");
+
+                using (Settings set = new Settings())
+                {
+                    set.ShowDialog(this);
+                }
+            }
+
+            if (Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Server", null) == null)
+            {
+                CheckEmptyServer();
+            }
         }
 
         private void DownloadFileWUnzip()
