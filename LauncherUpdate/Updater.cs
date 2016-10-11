@@ -16,7 +16,9 @@ namespace LauncherUpdate
         //public string downloadUrl = "http://rtpl.dynu.com:3414/projectponyville/patches/launcher/Launcher.exe";
 
         private const string JSONSchemaURL = "https://api.github.com/repos/RainbowTeamPL/rtpl-launcher/releases/latest";
-        public bool is64 = Environment.Is64BitProcess;
+        private const string JSONSchemaURL64 = "https://api.github.com/repos/RainbowTeamPL/rtpl-launcher-64/releases/latest";
+
+        public bool is64 = Environment.Is64BitOperatingSystem;
 
         public string JSONSchemaString;
 
@@ -26,7 +28,18 @@ namespace LauncherUpdate
 
             try
             {
-                JSONSchemaString = wc.DownloadString(JSONSchemaURL);
+                switch (is64)
+                {
+                    case true:
+                        JSONSchemaString = wc.DownloadString(JSONSchemaURL64);
+                        break;
+
+                    case false:
+                        JSONSchemaString = wc.DownloadString(JSONSchemaURL);
+                        break;
+                }
+
+                //JSONSchemaString = wc.DownloadString(JSONSchemaURL);
             }
             catch (Exception ex)
             {
@@ -104,7 +117,7 @@ namespace LauncherUpdate
             {
                 (request as HttpWebRequest).KeepAlive = false;
                 (request as HttpWebRequest).ProtocolVersion = System.Net.HttpVersion.Version10;
-                (request as HttpWebRequest).UserAgent = "LauncherUpdater";
+                (request as HttpWebRequest).UserAgent = "LauncherUpdate";
             }
             return request;
         }

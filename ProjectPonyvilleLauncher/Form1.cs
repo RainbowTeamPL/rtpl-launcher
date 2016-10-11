@@ -551,6 +551,17 @@ namespace ProjectPonyvilleLauncher
                     break;
             }
 
+            switch (is64)
+            {
+                case true:
+                    urlAddress = urlAddress + "/patches/ProjectPonyville.7z";
+                    break;
+
+                case false:
+                    urlAddress = urlAddress + "/patches/ProjectPonyville32.7z";
+                    break;
+            }
+
             urlAddress = urlAddress + "/patches/ProjectPonyville.7z";
             location = Application.StartupPath + @"\Temp\ProjectPonyville.7z";
             currFileName = "ProjectPonyville.7z";
