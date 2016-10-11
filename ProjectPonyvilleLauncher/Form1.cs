@@ -564,7 +564,7 @@ namespace ProjectPonyvilleLauncher
                     break;
             }
 
-            urlAddress = urlAddress + "/patches/ProjectPonyville.7z";
+            //urlAddress = urlAddress + "/patches/ProjectPonyville.7z";
             location = Application.StartupPath + @"\Temp\ProjectPonyville.7z";
             currFileName = "ProjectPonyville.7z";
             //this.dl = new Thread(new ThreadStart(this.DownloadFile));
