@@ -57,12 +57,22 @@ namespace LauncherUpdate
                 MessageBox.Show(ex.Message);
             }
 
-            JSONSchema schema = JsonConvert.DeserializeObject<JSONSchema>(JSONSchemaString);
-
             InitializeComponent();
 
             //Width = 10;
             Height = 10;
+        }
+
+        private void dl_Completed(object sender, AsyncCompletedEventArgs e)
+        {
+            Process.Start(Application.StartupPath + @"\Launcher.exe");
+            Thread.SpinWait(1000);
+            Environment.Exit(0);
+        }
+
+        private void Updater_Load(object sender, EventArgs e)
+        {
+            JSONSchema schema = JsonConvert.DeserializeObject<JSONSchema>(JSONSchemaString);
 
             if (!Directory.Exists(Application.StartupPath + @"\Temp"))
             {
@@ -83,17 +93,6 @@ namespace LauncherUpdate
             WebClient dl = new WebClient();
             dl.DownloadFileCompleted += new AsyncCompletedEventHandler(dl_Completed);
             dl.DownloadFileAsync(new Uri(schema.assets[0].browser_download_url), Application.StartupPath + @"\Launcher.exe");
-        }
-
-        private void dl_Completed(object sender, AsyncCompletedEventArgs e)
-        {
-            Process.Start(Application.StartupPath + @"\Launcher.exe");
-            Thread.SpinWait(1000);
-            Environment.Exit(0);
-        }
-
-        private void Updater_Load(object sender, EventArgs e)
-        {
         }
     }
 
