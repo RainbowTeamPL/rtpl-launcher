@@ -61,6 +61,9 @@ namespace ProjectPonyvilleLauncher
 
         public bool bTryInstallPrerequisites { get; private set; }
 
+        public FileAttributes local = new FileAttributes();
+        public FileAttributes remote = new FileAttributes();
+
         public Form1()
         {
             SetAccessRule(Application.StartupPath);
@@ -101,6 +104,8 @@ namespace ProjectPonyvilleLauncher
             GetChangelog();
 
             GetVersion();
+
+            local.id = regVersion;
 
             DownloadPromoImages();
 
@@ -533,6 +538,8 @@ namespace ProjectPonyvilleLauncher
                 Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL", "installDir", installDir);
             }
 
+            remote = GetRemoteFA();
+
             string[] servers = new string[3];
             servers[0] = GlobalVariables.server1;
             servers[1] = GlobalVariables.server2;
@@ -595,6 +602,25 @@ namespace ProjectPonyvilleLauncher
             //DownloadForm dlform = new DownloadForm();
             //dlform.Show();
             //DownloadFile("http://marcinbebenek.capriolo.pl/tf/sound/rainbowteampl/events/dispencer/dispencersong.mp3", Application.StartupPath + "\\Temp\\CD_Major.zip");
+        }
+
+        public FileAttributes GetRemoteFA()
+        {
+            FileAttributes rfa = new FileAttributes();
+
+            WebClient webClient = new WebClient();
+            try
+            {
+                string remoteJSON = webClient.DownloadString(GlobalVariables.server1 + "/rdindex.json");
+                rfa = JsonConvert.DeserializeObject(remoteJSON, typeof(FileAttributes)) as FileAttributes;
+            }
+            catch (WebException ex)
+            {
+                MessageBox.Show("Error getting data from remote", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Application.Exit();
+            }
+
+            return rfa;
         }
 
         private void CheckEmptyServer()

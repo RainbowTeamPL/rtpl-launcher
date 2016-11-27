@@ -101,6 +101,7 @@
       <DependentUpon>DownloadFormOBSOLETE.cs</DependentUpon>
     </Compile>
     <Compile Include="Enums.cs" />
+    <Compile Include="FileAttributes.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
