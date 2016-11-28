@@ -656,7 +656,7 @@ namespace ProjectPonyvilleLauncher
                 {
                     sw.Start();
 
-                    webClient.Headers["Accept-Encoding"] = "gzip,deflate";
+                    //webClient.Headers["Accept-Encoding"] = "gzip,deflate";
                     webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(OnGetDownloadedFileCompleted);
                     webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
                     webClient.DownloadFileAsync(new Uri(uri), dir);
