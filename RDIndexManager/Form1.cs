@@ -16,6 +16,7 @@ namespace RDIndexManager
 {
     public partial class Form1 : Form
     {
+        public string defaultPath = @"C:\_Git\ProjectPonyville\ProjectPonyvilleGame\Build2";
         public FileAttributes fa = new FileAttributes();
         private FolderBrowserDialog fbd = new FolderBrowserDialog();
 
@@ -48,7 +49,7 @@ namespace RDIndexManager
         {
             fbd.ShowNewFolderButton = false;
             fbd.Description = "Select installation folder for game:";
-            fbd.SelectedPath = null;
+            fbd.SelectedPath = defaultPath;
             fbd.RootFolder = Environment.SpecialFolder.MyComputer;
 
             var res = fbd.ShowDialog();
@@ -63,6 +64,7 @@ namespace RDIndexManager
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            BrowseTextBox.Text = defaultPath;
         }
 
         private void MakeBtn_Click(object sender, EventArgs e)
@@ -83,10 +85,10 @@ namespace RDIndexManager
             LogTextBox.Text = "";
 
             LogTextBox.Text += "--STARTED--\r\n";
-            LogTextBox.Text += "Working directory: " + fbd.SelectedPath + "\r\n";
+            LogTextBox.Text += "Working directory: " + BrowseTextBox.Text + "\r\n";
             LogTextBox.Text += "Scanning for Directories...";
 
-            DirectoryInfo di = new DirectoryInfo(fbd.SelectedPath);
+            DirectoryInfo di = new DirectoryInfo(BrowseTextBox.Text);
             DirectoryInfo[] Folders = di.GetDirectories("*", SearchOption.AllDirectories);
 
             List<FileInfo> Files = new List<FileInfo>();
@@ -94,12 +96,12 @@ namespace RDIndexManager
             for (int i = 0; i < Folders.Length; i++)
             {
                 //Thread.Sleep(1);
-                LogTextBox.Text += "Listing from folder: " + Folders[i].FullName.Replace(fbd.SelectedPath, "") + "\r\n";
+                LogTextBox.Text += "Listing from folder: " + Folders[i].FullName.Replace(BrowseTextBox.Text, "") + "\r\n";
 
                 for (int j = 0; j < Folders[i].GetFiles("*.*", SearchOption.AllDirectories).Length; j++)
                 {
                     Thread.Sleep(1);
-                    string file = Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].DirectoryName.Replace(fbd.SelectedPath, "") + "\\" + Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].Name;
+                    string file = Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].DirectoryName.Replace(BrowseTextBox.Text, "") + "\\" + Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].Name;
                     string hash = ByteArrayToString(MD5Hash(Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j]));
                     LogTextBox.Text += "Adding File: " + file + "\r\n";
                     LogTextBox.Text += "Hash: " + hash + "\r\n";
