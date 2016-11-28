@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -25,6 +26,8 @@ namespace ProjectPonyvilleLauncher
         public bool isProjectPonyvilleGameInstalled = false;
         public bool isDownloading = false;
         public string regVersion = "0";
+
+        public static bool rebuildManifest = false;
 
         public GameState gameState = GameState.NotInstalled;
         public Process[] updater = Process.GetProcessesByName("LauncherUpdate");
@@ -63,11 +66,15 @@ namespace ProjectPonyvilleLauncher
 
         public bool bTryInstallPrerequisites { get; private set; }
 
+        private Queue<string> _items = new Queue<string>();
+
         public FileAttributes local = new FileAttributes();
         public FileAttributes remote = new FileAttributes();
 
         public Form1()
         {
+            CheckForIllegalCrossThreadCalls = false;
+
             SetAccessRule(Application.StartupPath);
 
             defDir = installDir;
@@ -416,40 +423,6 @@ namespace ProjectPonyvilleLauncher
             }
         }
 
-        public void DownloadFileTasked(string url)
-        {
-            url = url.ToString().Replace(@"\", "/");
-
-            isDownloading = true;
-            HttpWebRequest req = HttpWebRequest.Create(url) as HttpWebRequest;
-            HttpWebResponse response;
-            string resUri;
-            response = req.GetResponse() as HttpWebResponse;
-            resUri = response.ResponseUri.AbsoluteUri;
-
-            WebClient webClient = new WebClient();
-            {
-                webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(CompletedTasked);
-                webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
-
-                // The variable that will be holding the url address (making sure it starts with http://)
-                //Uri URL = urlAddress.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ? new Uri(urlAddress) : new Uri("http://" + urlAddress);
-
-                // Start the stopwatch which we will be using to calculate the download speed
-                sw.Start();
-
-                try
-                {
-                    // Start downloading the file
-                    webClient.DownloadFileAsync(new Uri(resUri), location);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-            }
-        }
-
         public void InitTimer()
         {
             timer1 = new System.Windows.Forms.Timer();
@@ -602,14 +575,10 @@ namespace ProjectPonyvilleLauncher
 
             for (int i = 0; i < remote.Files.Count; i++)
             {
-                if (isDownloading)
-                {
-                    Thread.Sleep(10);
-                    i--;
-                }
-
-                Task.Run(() => DownloadFileTask(i, list)).Wait();
+                _items.Enqueue(list[i]);
             }
+
+            DownloadItem(); //Start Queue
 
             //if (force32bitBuild)
             //{
@@ -657,13 +626,212 @@ namespace ProjectPonyvilleLauncher
             //DownloadFile("http://marcinbebenek.capriolo.pl/tf/sound/rainbowteampl/events/dispencer/dispencersong.mp3", Application.StartupPath + "\\Temp\\CD_Major.zip");
         }
 
-        private async Task DownloadFileTask(int step, List<string> list)
+        private void DownloadItem()
         {
-            urlAddress = GlobalVariables.server1 + @"/ProjectPonyville" + list[step].ToString();
-            currFileName = list[step];
-            location = installDir + @"\ProjectPonyville" + list[step];
+            if (_items.Any())
+            {
+                string nextItem = _items.Dequeue();
+                currFileName = nextItem;
 
-            await Task.Run(() => DownloadFileTasked(urlAddress));
+                updateState = UpdateState.Downloading;
+                UpdateStateText();
+
+                string uri = GlobalVariables.server2 + @"/ProjectPonyville" + nextItem.Replace(@"\", "/");
+
+                if (!Directory.Exists(installDir + @"\ProjectPonyville"))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(installDir + @"\ProjectPonyville");
+                    }
+                    catch { }
+                }
+
+                BuildFolderHierarchy();
+
+                string dir = Path.GetFullPath(installDir + @"\ProjectPonyville" + nextItem);
+                //Console.WriteLine(dir);
+
+                using (CustomWebClient webClient = new CustomWebClient())
+                {
+                    sw.Start();
+
+                    webClient.Headers["Accept-Encoding"] = "gzip,deflate";
+                    webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(OnGetDownloadedFileCompleted);
+                    webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
+                    webClient.DownloadFileAsync(new Uri(uri), dir);
+                }
+
+                return;
+            }
+
+            ContinueInstalling(1);
+        }
+
+        private void BuildFolderHierarchy() //Creates empty folder structures in Temp
+        {
+            for (int i = 0; i < remote.Folders.Count; i++)
+            {
+                try
+                {
+                    Directory.CreateDirectory(installDir + @"\ProjectPonyville" + remote.Folders[i]);
+                }
+                catch (IOException ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+        }
+
+        private void ContinueInstalling(int stage)
+        {
+            switch (stage)
+            {
+                case 1:
+                    GenerateTempManifestV();
+                    break;
+
+                case 2:
+                    if (updateState == UpdateState.Unzipping)
+                    {
+                        MoveTempToInstall();
+                    }
+                    break;
+
+                case 3:
+                    FinishInstall();
+                    break;
+
+                default:
+                    break;
+            }
+
+            //throw new NotImplementedException();
+        }
+
+        private void FinishInstall()
+        {
+            if (bTryInstallPrerequisites == true)
+            {
+                TryInstallPrerequisites();
+            }
+
+            progressBar1.Style = ProgressBarStyle.Continuous;
+
+            if (currGame == Game.ProjectPonyville)
+            {
+                Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Version", VersionLabel.Text);
+                GetPPRegVersion();
+            }
+
+            updateState = UpdateState.Idle;
+            UpdateStateText();
+
+            updateState = UpdateState.ReadyToPlay;
+            UpdateStateText();
+
+            gameState = GameState.ReadyToPlay;
+            UpdateBtnText();
+            UnlockButton();
+        }
+
+        private async void MoveTempToInstall()
+        {
+            updateState = UpdateState.Unzipping;
+            CurrAction.Text = "Installing Files...";
+
+            await MoveTempToInstallTask();
+        }
+
+        private Task MoveTempToInstallTask()
+        {
+            return Task.Run(() =>
+            {
+                //try
+                //{
+                //    Directory.Move(Application.StartupPath + @"\Temp\ProjectPonyville", installDir);
+                //}
+                //catch (IOException ex)
+                //{
+                //    MessageBox.Show(ex.Message);
+                //}
+
+                updateState = UpdateState.Idle;
+
+                ContinueInstalling(3);
+            });
+        }
+
+        private async void GenerateTempManifestV()
+        {
+            updateState = UpdateState.Unzipping;
+            progressBar1.Style = ProgressBarStyle.Marquee;
+
+            CurrAction.Text = "Generating Manifest File...";
+
+            await GenerateTempManifest();
+        }
+
+        private Task GenerateTempManifest()
+        {
+            return Task.Run(() =>
+             {
+                 FileAttributes fa = new FileAttributes();
+
+                 DirectoryInfo di = new DirectoryInfo(installDir + @"\ProjectPonyville\");
+                 DirectoryInfo[] Folders = di.GetDirectories("*", SearchOption.AllDirectories);
+
+                 List<FileInfo> Files = new List<FileInfo>();
+
+                 string root = di.FullName.Replace(installDir + @"\ProjectPonyville", "");
+
+                 for (int i = 0; i < Folders.Length; i++)
+                 {
+                     fa.Folders.Add(Folders[i].FullName.Replace(installDir + @"\ProjectPonyville", "").Replace(root, ""));
+                 }
+
+                 for (int i = 0; i < di.GetFiles().Length; i++) //Loop for root folder
+                 {
+                     string file = "\\" + di.GetFiles("*.*", SearchOption.TopDirectoryOnly)[i].Name;
+                     string hash = ByteArrayToString(MD5Hash(di.GetFiles("*.*", SearchOption.TopDirectoryOnly)[i]));
+
+                     if (!fa.Files.ContainsKey(file))
+                     {
+                         fa.Files.Add(file, hash);
+                     }
+                 }
+
+                 for (int i = 0; i < Folders.Length; i++)
+                 {
+                     //Thread.Sleep(1);
+
+                     for (int j = 0; j < Folders[i].GetFiles("*.*", SearchOption.AllDirectories).Length; j++)
+                     {
+                         Thread.Sleep(1);
+                         string file = Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].DirectoryName.Replace(installDir + @"\ProjectPonyville", "") + "\\" + Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].Name;
+                         string hash = ByteArrayToString(MD5Hash(Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j]));
+
+                         if (!fa.Files.ContainsKey(file))
+                         {
+                             fa.Files.Add(file, hash);
+                         }
+
+                         string jsonOutput = JsonConvert.SerializeObject(fa, Formatting.Indented);
+                         File.WriteAllText(Application.StartupPath + @"\Tools\rdindex.json", jsonOutput);
+                         //Files.Add(Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j]);
+                     }
+                 }
+
+                 ContinueInstalling(2);
+             });
+        }
+
+        private async void OnGetDownloadedFileCompleted(object sender, AsyncCompletedEventArgs e)
+        {
+            Thread.Sleep(1);
+            sw.Stop();
+            sw.Reset();
+            DownloadItem();
         }
 
         public FileAttributes GetRemoteFA()
@@ -673,7 +841,7 @@ namespace ProjectPonyvilleLauncher
             WebClient webClient = new WebClient();
             try
             {
-                string remoteJSON = webClient.DownloadString(GlobalVariables.server1 + "/rdindex.json");
+                string remoteJSON = webClient.DownloadString(GlobalVariables.github + "/rdindex.json");
                 rfa = JsonConvert.DeserializeObject(remoteJSON, typeof(FileAttributes)) as FileAttributes;
             }
             catch (WebException ex)
@@ -822,24 +990,6 @@ namespace ProjectPonyvilleLauncher
         }
 
         private void Completed(object sender, AsyncCompletedEventArgs e)
-        {
-            // Reset the stopwatch.
-            sw.Reset();
-
-            if (e.Cancelled == true)
-            {
-                //MessageBox.Show("Download has been canceled.");
-            }
-            else
-            {
-                //MessageBox.Show("Download completed!");
-                //Close();
-                currFileName = "";
-                isDownloading = false;
-            }
-        }
-
-        private void CompletedTasked(object sender, AsyncCompletedEventArgs e)
         {
             // Reset the stopwatch.
             sw.Reset();
@@ -1009,6 +1159,11 @@ namespace ProjectPonyvilleLauncher
             {
                 set.ShowDialog(this);
             }
+
+            if (rebuildManifest)
+            {
+                GenerateTempManifestV();
+            }
         }
 
         // The event that will trigger when the WebClient is completed
@@ -1133,6 +1288,15 @@ namespace ProjectPonyvilleLauncher
             return true;
         }
 
+        private static bool HashesAreEqual(string first, string second)
+        {
+            if (first == second)
+            {
+                return true;
+            }
+            return false;
+        }
+
         private void VersionLabel_Click(object sender, EventArgs e)
         {
             updateState = UpdateState.ReadyToPlay;
@@ -1141,6 +1305,28 @@ namespace ProjectPonyvilleLauncher
             UnlockButton();
 
             UpdateBtnText();
+        }
+    }
+
+    internal class CustomWebClient : WebClient
+    {
+        /// <summary>
+        /// Returns a <see cref="T:System.Net.WebRequest" /> object for the specified resource.
+        /// </summary>
+        /// <param name="address">A <see cref="T:System.Uri" /> that identifies the resource to request.</param>
+        /// <returns>
+        /// A new <see cref="T:System.Net.WebRequest" /> object for the specified resource.
+        /// </returns>
+        protected override WebRequest GetWebRequest(Uri address)
+        {
+            WebRequest request = base.GetWebRequest(address);
+            if (request is HttpWebRequest)
+            {
+                (request as HttpWebRequest).KeepAlive = false;
+                (request as HttpWebRequest).ProtocolVersion = System.Net.HttpVersion.Version10;
+                (request as HttpWebRequest).UserAgent = "Launcher";
+            }
+            return request;
         }
     }
 }

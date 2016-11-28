@@ -32,6 +32,7 @@
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.BuildManifestBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // DeleteAllDataBtn
@@ -84,12 +85,23 @@
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
+            // BuildManifestBtn
+            // 
+            this.BuildManifestBtn.Location = new System.Drawing.Point(12, 75);
+            this.BuildManifestBtn.Name = "BuildManifestBtn";
+            this.BuildManifestBtn.Size = new System.Drawing.Size(260, 23);
+            this.BuildManifestBtn.TabIndex = 4;
+            this.BuildManifestBtn.Text = "Rebuild Manifest";
+            this.BuildManifestBtn.UseVisualStyleBackColor = true;
+            this.BuildManifestBtn.Click += new System.EventHandler(this.BuildManifestBtn_Click);
+            // 
             // Settings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.ClientSize = new System.Drawing.Size(284, 261);
+            this.Controls.Add(this.BuildManifestBtn);
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.comboBox1);
@@ -114,5 +126,6 @@
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.Button BuildManifestBtn;
     }
 }

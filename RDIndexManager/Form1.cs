@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -86,12 +87,34 @@ namespace RDIndexManager
 
             LogTextBox.Text += "--STARTED--\r\n";
             LogTextBox.Text += "Working directory: " + BrowseTextBox.Text + "\r\n";
-            LogTextBox.Text += "Scanning for Directories...";
+            LogTextBox.Text += "Scanning for Directories...\r\n";
 
             DirectoryInfo di = new DirectoryInfo(BrowseTextBox.Text);
             DirectoryInfo[] Folders = di.GetDirectories("*", SearchOption.AllDirectories);
 
             List<FileInfo> Files = new List<FileInfo>();
+
+            string root = BrowseTextBox.Text.Replace(Path.GetDirectoryName(BrowseTextBox.Text), "");
+
+            for (int i = 0; i < Folders.Length; i++)
+            {
+                fa.Folders.Add(Folders[i].FullName.Replace(Path.GetDirectoryName(BrowseTextBox.Text), "").Replace(root, ""));
+            }
+
+            LogTextBox.Text += "Listing from folder: " + root + "\r\n";
+
+            for (int i = 0; i < di.GetFiles().Length; i++) //Loop for root folder
+            {
+                string file = "\\" + di.GetFiles("*.*", SearchOption.TopDirectoryOnly)[i].Name;
+                string hash = ByteArrayToString(MD5Hash(di.GetFiles("*.*", SearchOption.TopDirectoryOnly)[i]));
+                LogTextBox.Text += "Adding File: " + file + "\r\n";
+                LogTextBox.Text += "Hash: " + hash + "\r\n";
+
+                if (!fa.Files.ContainsKey(file))
+                {
+                    fa.Files.Add(file, hash);
+                }
+            }
 
             for (int i = 0; i < Folders.Length; i++)
             {
@@ -100,34 +123,25 @@ namespace RDIndexManager
 
                 for (int j = 0; j < Folders[i].GetFiles("*.*", SearchOption.AllDirectories).Length; j++)
                 {
-                    ThreadPool.SetMaxThreads(3, 3);
+                    Thread.Sleep(1);
+                    string file = Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].DirectoryName.Replace(BrowseTextBox.Text, "") + "\\" + Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].Name;
+                    string hash = ByteArrayToString(MD5Hash(Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j]));
+                    LogTextBox.Text += "Adding File: " + file + "\r\n";
+                    LogTextBox.Text += "Hash: " + hash + "\r\n";
 
-                    for (int k = 0; k < j; k++)
+                    if (!fa.Files.ContainsKey(file))
                     {
-                        string file = Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].DirectoryName.Replace(BrowseTextBox.Text, "") + "\\" + Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].Name.ToString();
-                        ThreadPool.QueueUserWorkItem(new WaitCallback(ProcessFile), file);
+                        fa.Files.Add(file, hash);
                     }
-                }
 
-                //Files.Add(Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j]);
+                    //Files.Add(Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j]);
+                }
             }
+
+            File.WriteAllText(Application.StartupPath + @"\log.log", LogTextBox.Text);
 
             string jsonOutput = JsonConvert.SerializeObject(fa, Formatting.Indented);
             File.WriteAllText(Path.Combine(Application.StartupPath, "rdindex.json"), jsonOutput);
-        }
-
-        private void ProcessFile(object state)
-        {
-            Thread.Sleep(1);
-            string file = state.ToString();
-            string hash = ByteArrayToString(MD5Hash(new FileInfo(Path.Combine(BrowseTextBox.Text, file))));
-            LogTextBox.Text += "Adding File: " + file + "\r\n";
-            LogTextBox.Text += "Hash: " + hash + "\r\n";
-
-            if (!fa.Files.ContainsKey(file))
-            {
-                fa.Files.Add(file, hash);
-            }
         }
     }
 }
