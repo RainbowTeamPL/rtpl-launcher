@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -8,6 +9,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -414,6 +416,40 @@ namespace ProjectPonyvilleLauncher
             }
         }
 
+        public void DownloadFileTasked(string url)
+        {
+            url = url.ToString().Replace(@"\", "/");
+
+            isDownloading = true;
+            HttpWebRequest req = HttpWebRequest.Create(url) as HttpWebRequest;
+            HttpWebResponse response;
+            string resUri;
+            response = req.GetResponse() as HttpWebResponse;
+            resUri = response.ResponseUri.AbsoluteUri;
+
+            WebClient webClient = new WebClient();
+            {
+                webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(CompletedTasked);
+                webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
+
+                // The variable that will be holding the url address (making sure it starts with http://)
+                //Uri URL = urlAddress.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ? new Uri(urlAddress) : new Uri("http://" + urlAddress);
+
+                // Start the stopwatch which we will be using to calculate the download speed
+                sw.Start();
+
+                try
+                {
+                    // Start downloading the file
+                    webClient.DownloadFileAsync(new Uri(resUri), location);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+        }
+
         public void InitTimer()
         {
             timer1 = new System.Windows.Forms.Timer();
@@ -562,33 +598,50 @@ namespace ProjectPonyvilleLauncher
                     break;
             }
 
-            if (force32bitBuild)
-            {
-                urlAddress = urlAddress + "/patches/ProjectPonyville32.7z";
-                currFileName = "ProjectPonyville32.7z";
-            }
-            else
-            {
-                switch (is64)
-                {
-                    case true:
-                        urlAddress = urlAddress + "/patches/ProjectPonyville.7z";
-                        currFileName = "ProjectPonyville.7z";
-                        break;
+            List<string> list = new List<string>(remote.Files.Keys);
 
-                    case false:
-                        urlAddress = urlAddress + "/patches/ProjectPonyville32.7z";
-                        currFileName = "ProjectPonyville32.7z";
-                        break;
+            for (int i = 0; i < remote.Files.Count; i++)
+            {
+                if (isDownloading)
+                {
+                    Thread.Sleep(10);
+                    i--;
                 }
+
+                Task.Run(() => DownloadFileTask(i, list)).Wait();
             }
+
+            //if (force32bitBuild)
+            //{
+            //    urlAddress = urlAddress + "/patches/ProjectPonyville32.7z";
+            //    currFileName = "ProjectPonyville32.7z";
+            //}
+            //else
+            //{
+            //    switch (is64)
+            //    {
+            //        case true:
+            //            urlAddress = urlAddress + "/patches/ProjectPonyville.7z";
+            //            currFileName = "ProjectPonyville.7z";
+            //            break;
+
+            //        case false:
+            //            urlAddress = urlAddress + "/patches/ProjectPonyville32.7z";
+            //            currFileName = "ProjectPonyville32.7z";
+            //            break;
+            //    }
+            //}                     //CHANGED THE WAY ITS DOWNLOADED
 
             //urlAddress = urlAddress + "/patches/ProjectPonyville.7z";
-            location = Application.StartupPath + @"\Temp\ProjectPonyville.7z";
+
+            //location = Application.StartupPath + @"\Temp\ProjectPonyville.7z"; //CHANGE HERE
+
             //currFileName = "ProjectPonyville.7z";
             //this.dl = new Thread(new ThreadStart(this.DownloadFile));
             //this.dl.Start();
-            DownloadFileWUnzip();
+
+            //DownloadFileWUnzip(); //NO MORE UNZIPPING
+
             //while (isDownloading = true)
             //}
             //    Thread.Sleep(1000);
@@ -602,6 +655,15 @@ namespace ProjectPonyvilleLauncher
             //DownloadForm dlform = new DownloadForm();
             //dlform.Show();
             //DownloadFile("http://marcinbebenek.capriolo.pl/tf/sound/rainbowteampl/events/dispencer/dispencersong.mp3", Application.StartupPath + "\\Temp\\CD_Major.zip");
+        }
+
+        private async Task DownloadFileTask(int step, List<string> list)
+        {
+            urlAddress = GlobalVariables.server1 + @"/ProjectPonyville" + list[step].ToString();
+            currFileName = list[step];
+            location = installDir + @"\ProjectPonyville" + list[step];
+
+            await Task.Run(() => DownloadFileTasked(urlAddress));
         }
 
         public FileAttributes GetRemoteFA()
@@ -760,6 +822,24 @@ namespace ProjectPonyvilleLauncher
         }
 
         private void Completed(object sender, AsyncCompletedEventArgs e)
+        {
+            // Reset the stopwatch.
+            sw.Reset();
+
+            if (e.Cancelled == true)
+            {
+                //MessageBox.Show("Download has been canceled.");
+            }
+            else
+            {
+                //MessageBox.Show("Download completed!");
+                //Close();
+                currFileName = "";
+                isDownloading = false;
+            }
+        }
+
+        private void CompletedTasked(object sender, AsyncCompletedEventArgs e)
         {
             // Reset the stopwatch.
             sw.Reset();
@@ -1023,6 +1103,34 @@ namespace ProjectPonyvilleLauncher
                 catch { }
             }
             //Close();
+        }
+
+        public static string ByteArrayToString(byte[] ba)
+        {
+            StringBuilder hex = new StringBuilder(ba.Length * 2);
+            foreach (byte b in ba)
+                hex.AppendFormat("{0:x2}", b);
+            return hex.ToString();
+        }
+
+        private static byte[] MD5Hash(FileInfo first)
+        {
+            byte[] firstHash = MD5.Create().ComputeHash(first.OpenRead());
+
+            return firstHash;
+        }
+
+        private static bool FilesAreEqual_Hash(FileInfo first, FileInfo second)
+        {
+            byte[] firstHash = MD5.Create().ComputeHash(first.OpenRead());
+            byte[] secondHash = MD5.Create().ComputeHash(second.OpenRead());
+
+            for (int i = 0; i < firstHash.Length; i++)
+            {
+                if (firstHash[i] != secondHash[i])
+                    return false;
+            }
+            return true;
         }
 
         private void VersionLabel_Click(object sender, EventArgs e)

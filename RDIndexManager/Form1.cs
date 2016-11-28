@@ -100,23 +100,34 @@ namespace RDIndexManager
 
                 for (int j = 0; j < Folders[i].GetFiles("*.*", SearchOption.AllDirectories).Length; j++)
                 {
-                    Thread.Sleep(1);
-                    string file = Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].DirectoryName.Replace(BrowseTextBox.Text, "") + "\\" + Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].Name;
-                    string hash = ByteArrayToString(MD5Hash(Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j]));
-                    LogTextBox.Text += "Adding File: " + file + "\r\n";
-                    LogTextBox.Text += "Hash: " + hash + "\r\n";
+                    ThreadPool.SetMaxThreads(3, 3);
 
-                    if (!fa.Files.ContainsKey(file))
+                    for (int k = 0; k < j; k++)
                     {
-                        fa.Files.Add(file, hash);
+                        string file = Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].DirectoryName.Replace(BrowseTextBox.Text, "") + "\\" + Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].Name.ToString();
+                        ThreadPool.QueueUserWorkItem(new WaitCallback(ProcessFile), file);
                     }
-
-                    //Files.Add(Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j]);
                 }
+
+                //Files.Add(Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j]);
             }
 
             string jsonOutput = JsonConvert.SerializeObject(fa, Formatting.Indented);
             File.WriteAllText(Path.Combine(Application.StartupPath, "rdindex.json"), jsonOutput);
+        }
+
+        private void ProcessFile(object state)
+        {
+            Thread.Sleep(1);
+            string file = state.ToString();
+            string hash = ByteArrayToString(MD5Hash(new FileInfo(Path.Combine(BrowseTextBox.Text, file))));
+            LogTextBox.Text += "Adding File: " + file + "\r\n";
+            LogTextBox.Text += "Hash: " + hash + "\r\n";
+
+            if (!fa.Files.ContainsKey(file))
+            {
+                fa.Files.Add(file, hash);
+            }
         }
     }
 }
