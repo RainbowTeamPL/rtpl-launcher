@@ -116,6 +116,10 @@ namespace ProjectPonyvilleLauncher
 
             local.id = regVersion;
 
+            remote = GetRemoteFA();
+
+            local = TryGetLocalFA();
+
             DownloadPromoImages();
 
             gameState = GameState.NotInstalled;
@@ -142,6 +146,19 @@ namespace ProjectPonyvilleLauncher
 
             Console.Write("regv " + regVersion);
             Console.Write("verl " + VersionLabel.Text);
+        }
+
+        private FileAttributes TryGetLocalFA()
+        {
+            try
+            {
+                string localJSON = File.ReadAllText(Application.StartupPath + @"\Tools\rdindex.json");
+                FileAttributes lfa = JsonConvert.DeserializeObject<FileAttributes>(localJSON) as FileAttributes;
+
+                return lfa;
+            }
+            catch { }
+            return new FileAttributes();
         }
 
         private void GetGameInstallDir()
@@ -200,15 +217,17 @@ namespace ProjectPonyvilleLauncher
 
         private void GetChangelog()
         {
-            WebClient webClient = new WebClient();
-            try
+            using (CustomWebClient webClient = new CustomWebClient())
             {
-                webClient.DownloadFile(GlobalVariables.github + "/changelog.txt", Application.StartupPath + @"\Temp\changelog.tmp");
-            }
-            catch (WebException ex)
-            {
-                Console.WriteLine("Error: {0}", ex);
-                File.WriteAllText(Application.StartupPath + @"\Temp\changelog.tmp", "UNDER MAINTENANCE");
+                try
+                {
+                    webClient.DownloadFile(GlobalVariables.github + "/changelog.txt", Application.StartupPath + @"\Temp\changelog.tmp");
+                }
+                catch (WebException ex)
+                {
+                    Console.WriteLine("Error: {0}", ex);
+                    File.WriteAllText(Application.StartupPath + @"\Temp\changelog.tmp", "UNDER MAINTENANCE");
+                }
             }
             ChangelogTextBox.Text = File.ReadAllText(Application.StartupPath + @"\Temp\changelog.tmp");
         }
@@ -400,7 +419,7 @@ namespace ProjectPonyvilleLauncher
             response = req.GetResponse() as HttpWebResponse;
             resUri = response.ResponseUri.AbsoluteUri;
 
-            WebClient webClient = new WebClient();
+            using (CustomWebClient webClient = new CustomWebClient())
             {
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(Completed);
                 webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
@@ -787,7 +806,7 @@ namespace ProjectPonyvilleLauncher
 
                  for (int i = 0; i < Folders.Length; i++)
                  {
-                     fa.Folders.Add(Folders[i].FullName.Replace(installDir + @"\ProjectPonyville", "").Replace(root, ""));
+                     fa.Folders.Add(Folders[i].FullName.Replace(installDir + @"\ProjectPonyville", ""));
                  }
 
                  for (int i = 0; i < di.GetFiles().Length; i++) //Loop for root folder
@@ -838,16 +857,18 @@ namespace ProjectPonyvilleLauncher
         {
             FileAttributes rfa = new FileAttributes();
 
-            WebClient webClient = new WebClient();
-            try
+            using (CustomWebClient webClient = new CustomWebClient())
             {
-                string remoteJSON = webClient.DownloadString(GlobalVariables.github + "/rdindex.json");
-                rfa = JsonConvert.DeserializeObject(remoteJSON, typeof(FileAttributes)) as FileAttributes;
-            }
-            catch (WebException ex)
-            {
-                MessageBox.Show("Error getting data from remote", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Application.Exit();
+                try
+                {
+                    string remoteJSON = webClient.DownloadString(GlobalVariables.github + "/rdindex.json");
+                    rfa = JsonConvert.DeserializeObject(remoteJSON, typeof(FileAttributes)) as FileAttributes;
+                }
+                catch (WebException ex)
+                {
+                    MessageBox.Show("Error getting data from remote", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Exit();
+                }
             }
 
             return rfa;
@@ -1240,8 +1261,12 @@ namespace ProjectPonyvilleLauncher
         {
             if (_restart)
             {
-                ProcessStartInfo p = new ProcessStartInfo(Application.StartupPath + @"\LauncherUpdate.exe");
-                Process.Start(p);
+                try //for development only to prevent exception
+                {
+                    ProcessStartInfo p = new ProcessStartInfo(Application.StartupPath + @"\LauncherUpdate.exe");
+                    Process.Start(p);
+                }
+                catch { }
 
                 _restart = false;
             }
