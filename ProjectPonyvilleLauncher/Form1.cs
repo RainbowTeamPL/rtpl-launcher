@@ -150,14 +150,22 @@ namespace ProjectPonyvilleLauncher
 
         private FileAttributes TryGetLocalFA()
         {
-            try
+            if (File.Exists(Application.StartupPath + @"\Tools\rdindex.json"))
             {
-                string localJSON = File.ReadAllText(Application.StartupPath + @"\Tools\rdindex.json");
-                FileAttributes lfa = JsonConvert.DeserializeObject<FileAttributes>(localJSON) as FileAttributes;
+                try
+                {
+                    string localJSON = File.ReadAllText(Application.StartupPath + @"\Tools\rdindex.json");
+                    FileAttributes lfa = JsonConvert.DeserializeObject<FileAttributes>(localJSON) as FileAttributes;
 
-                return lfa;
+                    return lfa;
+                }
+                catch { }
             }
-            catch { }
+            else
+            {
+                GenerateManifest().Wait();
+                local = TryGetLocalFA();
+            }
             return new FileAttributes();
         }
 
@@ -707,7 +715,7 @@ namespace ProjectPonyvilleLauncher
             switch (stage)
             {
                 case 1:
-                    GenerateTempManifestV();
+                    GenerateManifestV();
                     break;
 
                 case 2:
@@ -781,17 +789,17 @@ namespace ProjectPonyvilleLauncher
             });
         }
 
-        private async void GenerateTempManifestV()
+        private async void GenerateManifestV()
         {
             updateState = UpdateState.Unzipping;
             progressBar1.Style = ProgressBarStyle.Marquee;
 
             CurrAction.Text = "Generating Manifest File...";
 
-            await GenerateTempManifest();
+            await GenerateManifest();
         }
 
-        private Task GenerateTempManifest()
+        private Task GenerateManifest()
         {
             return Task.Run(() =>
              {
@@ -1183,7 +1191,7 @@ namespace ProjectPonyvilleLauncher
 
             if (rebuildManifest)
             {
-                GenerateTempManifestV();
+                GenerateManifestV();
             }
         }
 
