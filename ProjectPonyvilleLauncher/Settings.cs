@@ -79,7 +79,7 @@ namespace ProjectPonyvilleLauncher
 
         private void BuildManifestBtn_Click(object sender, EventArgs e)
         {
-            Form1.rebuildManifest = true;
+            Form1.rebuildIndex = true;
             Close();
         }
     }
