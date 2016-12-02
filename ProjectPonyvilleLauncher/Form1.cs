@@ -27,6 +27,7 @@ namespace ProjectPonyvilleLauncher
         public bool isDownloading = false;
         public string regVersion = "0";
 
+        public bool isOffline = false; //TODO: -offline switch
 
         public static bool rebuildIndex = false;
 
