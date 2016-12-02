@@ -17,7 +17,7 @@ namespace RDIndexManager
 {
     public partial class Form1 : Form
     {
-        public string defaultPath = @"C:\_Git\ProjectPonyville\ProjectPonyvilleGame\Build2";
+        public string defaultPath = @"C:\_Git\rtpl-launcher-serverside\server\ProjectPonyville";
         public FileAttributes fa = new FileAttributes();
         private FolderBrowserDialog fbd = new FolderBrowserDialog();
 
@@ -98,7 +98,7 @@ namespace RDIndexManager
 
             for (int i = 0; i < Folders.Length; i++)
             {
-                fa.Folders.Add(Folders[i].FullName.Replace(Path.GetDirectoryName(BrowseTextBox.Text), "").Replace(root, ""));
+                fa.Folders.Add(Folders[i].FullName.Replace(Path.GetDirectoryName(BrowseTextBox.Text + root), ""));
             }
 
             LogTextBox.Text += "Listing from folder: " + root + "\r\n";

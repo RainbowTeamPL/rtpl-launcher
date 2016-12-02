@@ -27,6 +27,7 @@ namespace ProjectPonyvilleLauncher
         public bool isDownloading = false;
         public string regVersion = "0";
 
+
         public static bool rebuildIndex = false;
 
         public GameState gameState = GameState.NotInstalled;
@@ -500,6 +501,7 @@ namespace ProjectPonyvilleLauncher
                 {
                     // Start downloading the file
                     webClient.DownloadFileAsync(new Uri(resUri), _location);
+                    Console.WriteLine(resUri);
                 }
                 catch (Exception ex)
                 {
@@ -1249,7 +1251,17 @@ namespace ProjectPonyvilleLauncher
 
         private void UpdateGame()
         {
-            updateState = UpdateState.Patching; //TODO: Continue
+            updateState = UpdateState.Patching;
+
+            for (int i = 0; i < changedItems.Count; i++)
+            {
+                _downloadqueue.Enqueue(changedItems[i]);
+                changedItems.RemoveAt(i);
+            }
+
+            _isInstalling = true;
+
+            DownloadItem();
         }
 
         private void SettingsButton_Click(object sender, EventArgs e)
