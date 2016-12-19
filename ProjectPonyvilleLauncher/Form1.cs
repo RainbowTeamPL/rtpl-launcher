@@ -1256,8 +1256,8 @@ namespace ProjectPonyvilleLauncher
 
             for (int i = 0; i < changedItems.Count; i++)
             {
-                _downloadqueue.Enqueue(changedItems[i]);
-                changedItems.RemoveAt(i);
+                _downloadqueue.Enqueue(changedItems[0]);
+                changedItems.RemoveAt(0); //TODO: POSSIBLE LOGIC BREAK FIXED(wrong index numbers)
             }
 
             _isInstalling = true;
