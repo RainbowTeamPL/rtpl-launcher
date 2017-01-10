@@ -77,10 +77,14 @@ namespace ProjectPonyvilleLauncher
             Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "force32bitBuild", checkBox1.Checked);
         }
 
-        private void BuildManifestBtn_Click(object sender, EventArgs e)
+        private void BuildIndexBtn_Click(object sender, EventArgs e)
         {
             Form1.rebuildIndex = true;
             Close();
+        }
+
+        private void SetupAutoLoginBtn_Click(object sender, EventArgs e)
+        {
         }
     }
 }

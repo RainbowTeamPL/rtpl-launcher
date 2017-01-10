@@ -32,7 +32,8 @@
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.BuildManifestBtn = new System.Windows.Forms.Button();
+            this.BuildIndexBtn = new System.Windows.Forms.Button();
+            this.SetupAutoLoginBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // DeleteAllDataBtn
@@ -85,15 +86,25 @@
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
-            // BuildManifestBtn
+            // BuildIndexBtn
             // 
-            this.BuildManifestBtn.Location = new System.Drawing.Point(12, 75);
-            this.BuildManifestBtn.Name = "BuildManifestBtn";
-            this.BuildManifestBtn.Size = new System.Drawing.Size(260, 23);
-            this.BuildManifestBtn.TabIndex = 4;
-            this.BuildManifestBtn.Text = "Rebuild Manifest";
-            this.BuildManifestBtn.UseVisualStyleBackColor = true;
-            this.BuildManifestBtn.Click += new System.EventHandler(this.BuildManifestBtn_Click);
+            this.BuildIndexBtn.Location = new System.Drawing.Point(12, 75);
+            this.BuildIndexBtn.Name = "BuildIndexBtn";
+            this.BuildIndexBtn.Size = new System.Drawing.Size(260, 23);
+            this.BuildIndexBtn.TabIndex = 4;
+            this.BuildIndexBtn.Text = "Rebuild Index";
+            this.BuildIndexBtn.UseVisualStyleBackColor = true;
+            this.BuildIndexBtn.Click += new System.EventHandler(this.BuildIndexBtn_Click);
+            // 
+            // SetupAutoLoginBtn
+            // 
+            this.SetupAutoLoginBtn.Location = new System.Drawing.Point(12, 104);
+            this.SetupAutoLoginBtn.Name = "SetupAutoLoginBtn";
+            this.SetupAutoLoginBtn.Size = new System.Drawing.Size(260, 23);
+            this.SetupAutoLoginBtn.TabIndex = 5;
+            this.SetupAutoLoginBtn.Text = "Set Up Auto Login";
+            this.SetupAutoLoginBtn.UseVisualStyleBackColor = true;
+            this.SetupAutoLoginBtn.Click += new System.EventHandler(this.SetupAutoLoginBtn_Click);
             // 
             // Settings
             // 
@@ -101,7 +112,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.ClientSize = new System.Drawing.Size(284, 261);
-            this.Controls.Add(this.BuildManifestBtn);
+            this.Controls.Add(this.SetupAutoLoginBtn);
+            this.Controls.Add(this.BuildIndexBtn);
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.comboBox1);
@@ -126,6 +138,7 @@
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox checkBox1;
-        private System.Windows.Forms.Button BuildManifestBtn;
+        private System.Windows.Forms.Button BuildIndexBtn;
+        private System.Windows.Forms.Button SetupAutoLoginBtn;
     }
 }
