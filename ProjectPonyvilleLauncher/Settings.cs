@@ -28,7 +28,7 @@ namespace ProjectPonyvilleLauncher
 
         private void DeleteAll()
         {
-            Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Version", "0");
+            Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + Form1.currGame.ToString(), "Version", "0");
             //Registry.CurrentUser.DeleteSubKey("Software\\RainbowTeamPL\\ProjectPonyville\\installDir", false);
 
             try
@@ -47,11 +47,11 @@ namespace ProjectPonyvilleLauncher
             {
             }
 
-            if (Directory.Exists(Form1.installDir + @"\ProjectPonyville"))
+            if (Directory.Exists(Form1.installDir + @"\" + Form1.currGame.ToString()))
             {
                 try
                 {
-                    Directory.Delete(Form1.installDir + @"\ProjectPonyville", true);
+                    Directory.Delete(Form1.installDir + @"\" + Form1.currGame.ToString(), true);
                 }
                 catch
                 {
@@ -63,18 +63,18 @@ namespace ProjectPonyvilleLauncher
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Server", comboBox1.SelectedItem);
+            Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + Form1.currGame.ToString(), "Server", comboBox1.SelectedItem);
         }
 
         private void Settings_Load(object sender, EventArgs e)
         {
-            comboBox1.SelectedItem = Convert.ToString(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Server", "rtpl.dynu.com"));
-            checkBox1.Checked = Convert.ToBoolean(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "force32bitBuild", false));
+            comboBox1.SelectedItem = Convert.ToString(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + Form1.currGame.ToString(), "Server", "rtpl.dynu.com"));
+            checkBox1.Checked = Convert.ToBoolean(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + Form1.currGame.ToString(), "force32bitBuild", false));
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-            Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "force32bitBuild", checkBox1.Checked);
+            Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + Form1.currGame.ToString(), "force32bitBuild", checkBox1.Checked);
         }
 
         private void BuildIndexBtn_Click(object sender, EventArgs e)

@@ -21,14 +21,47 @@ namespace RDIndexManager
         public FileAttributes fa = new FileAttributes();
         private FolderBrowserDialog fbd = new FolderBrowserDialog();
 
-        public Form1()
+        private string c_path = "";
+        private string c_output = "";
+        private bool c_exit = false;
+
+        public Form1(string[] args)
         {
             InitializeComponent();
+
+            SortArgs(args);
+        }
+
+        private void SortArgs(string[] args)
+        {
+            foreach (string arg in args)
+            {
+                if (arg.Contains("-path"))
+                {
+                    c_path = arg.Replace("-path", "");
+                }
+
+                if (arg.Contains("-o"))
+                {
+                    c_output = arg.Replace("-o", "");
+                }
+
+                if (arg.Contains("-exit"))
+                {
+                    c_exit = true;
+                }
+            }
+
+            if (c_exit)
+            {
+                StartWorkingOnFA();
+            }
         }
 
         private static byte[] MD5Hash(FileInfo first)
         {
-            byte[] firstHash = MD5.Create().ComputeHash(first.OpenRead());
+            BufferedStream bs = new BufferedStream(first.OpenRead(), 1200000);
+            byte[] firstHash = MD5.Create().ComputeHash(bs);
 
             return firstHash;
         }
@@ -66,6 +99,11 @@ namespace RDIndexManager
         private void Form1_Load(object sender, EventArgs e)
         {
             BrowseTextBox.Text = defaultPath;
+
+            if (c_path != "")
+            {
+                BrowseTextBox.Text = c_path;
+            }
         }
 
         private void MakeBtn_Click(object sender, EventArgs e)
@@ -141,7 +179,20 @@ namespace RDIndexManager
             File.WriteAllText(Application.StartupPath + @"\log.log", LogTextBox.Text);
 
             string jsonOutput = JsonConvert.SerializeObject(fa, Formatting.Indented);
-            File.WriteAllText(Path.Combine(Application.StartupPath, "rdindex.json"), jsonOutput);
+
+            if (c_output == "")
+            {
+                File.WriteAllText(Path.Combine(BrowseTextBox.Text, "rdindex.json"), jsonOutput);
+            }
+            else
+            {
+                File.WriteAllText(c_output, jsonOutput);
+            }
+
+            if (c_exit)
+            {
+                Application.Exit();
+            }
         }
     }
 }

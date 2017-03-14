@@ -25,7 +25,12 @@ namespace ProjectPonyvilleLauncher
 
         private void GameSelection_Load(object sender, EventArgs e)
         {
+        }
 
+        private void CDGameBtn_Click(object sender, EventArgs e)
+        {
+            Form1.currGame = Enums.Enums.Game.CanterlotDefense;
+            this.Close();
         }
     }
 }

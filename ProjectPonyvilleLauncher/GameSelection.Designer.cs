@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.PPGameBtn = new System.Windows.Forms.Button();
+            this.CDGameBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // PPGameBtn
@@ -41,12 +42,23 @@
             this.PPGameBtn.UseVisualStyleBackColor = true;
             this.PPGameBtn.Click += new System.EventHandler(this.PPGameBtn_Click);
             // 
+            // CDGameBtn
+            // 
+            this.CDGameBtn.Location = new System.Drawing.Point(10, 91);
+            this.CDGameBtn.Name = "CDGameBtn";
+            this.CDGameBtn.Size = new System.Drawing.Size(250, 75);
+            this.CDGameBtn.TabIndex = 1;
+            this.CDGameBtn.Text = "CanterlotDefense";
+            this.CDGameBtn.UseVisualStyleBackColor = true;
+            this.CDGameBtn.Click += new System.EventHandler(this.CDGameBtn_Click);
+            // 
             // GameSelection
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(274, 261);
+            this.ClientSize = new System.Drawing.Size(266, 253);
             this.ControlBox = false;
+            this.Controls.Add(this.CDGameBtn);
             this.Controls.Add(this.PPGameBtn);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Name = "GameSelection";
@@ -63,5 +75,6 @@
         #endregion
 
         private System.Windows.Forms.Button PPGameBtn;
+        private System.Windows.Forms.Button CDGameBtn;
     }
 }

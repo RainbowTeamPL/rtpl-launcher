@@ -11,7 +11,8 @@ namespace ProjectPonyvilleLauncher.Enums
         public enum Game
         {
             Unknown = -1,
-            ProjectPonyville = 0
+            ProjectPonyville = 0,
+            CanterlotDefense = 1
         }
 
         public enum GameState

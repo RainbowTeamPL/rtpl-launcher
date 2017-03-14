@@ -75,7 +75,7 @@ namespace ProjectPonyvilleLauncher
         private bool _doonce = false;
         private bool _isInstalling = false;
 
-        private List<string> changedItems = new List<string>();
+        private Queue<string> changedItems = new Queue<string>();
 
         public Form1()
         {
@@ -102,7 +102,7 @@ namespace ProjectPonyvilleLauncher
 
             CheckEmptyServer();
 
-            switch (Convert.ToString(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Server", "rtpl.dynu.com")))
+            switch (Convert.ToString(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + currGame.ToString(), "Server", "rtpl.dynu.com")))
             {
                 case "rtpl.dynu.com":
                     _urlAddress = servers[0];
@@ -119,6 +119,7 @@ namespace ProjectPonyvilleLauncher
 
             InitializeComponent();
 
+            Text = currGame.ToString() + " Launcher";
             label1.Text = currGame.ToString() + " Launcher";
 
             //_game = currGame;
@@ -196,7 +197,7 @@ namespace ProjectPonyvilleLauncher
                 {
                     if (!remote.Files[key].Equals(local.Files[key]))
                     {
-                        changedItems.Add(key);
+                        changedItems.Enqueue(key);
                     }
                 }
                 catch { }
@@ -607,7 +608,7 @@ namespace ProjectPonyvilleLauncher
             }
         }
 
-        public void ProjectPonyvilleMajor()
+        public void GameMajor()
         {
             Download_Tools();
 
@@ -646,7 +647,7 @@ namespace ProjectPonyvilleLauncher
 
             CheckEmptyServer();
 
-            switch (Convert.ToString(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Server", "rtpl.dynu.com")))
+            switch (Convert.ToString(Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + currGame.ToString(), "Server", "rtpl.dynu.com")))
             {
                 case "rtpl.dynu.com":
                     _urlAddress = servers[0];
@@ -810,11 +811,11 @@ namespace ProjectPonyvilleLauncher
 
             progressBar1.Style = ProgressBarStyle.Continuous;
 
-            if (currGame == Game.ProjectPonyville)
-            {
-                Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Version", VersionLabel.Text);
-                GetRegVersion();
-            }
+            //if (currGame == Game.ProjectPonyville)
+            //{
+            Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + currGame.ToString(), "Version", VersionLabel.Text);
+            GetRegVersion();
+            //}
 
             updateState = UpdateState.Idle;
             UpdateStateText();
@@ -870,25 +871,32 @@ namespace ProjectPonyvilleLauncher
         {
             return Task.Run(() =>
              {
+                 //ProcessStartInfo rdim = new ProcessStartInfo(Application.StartupPath + @"\Tools\RDIndexManager.exe", "-path\"" + installDir + @"\" + currGame.ToString() + "\" -o\"" + Application.StartupPath + @"\Tools\" + currGame.ToString() + "rdindex.json\"" + " -exit");
+                 //try
+                 //{
+                 //    Process.Start(rdim);
+                 //}
+                 //catch { };
+
                  try
                  {
                      FileAttributes fa = new FileAttributes();
 
-                     DirectoryInfo di = new DirectoryInfo(installDir + @"\ProjectPonyville\");
+                     DirectoryInfo di = new DirectoryInfo(installDir + @"\" + currGame.ToString() + @"\");
                      DirectoryInfo[] Folders = di.GetDirectories("*", SearchOption.AllDirectories);
 
                      List<FileInfo> Files = new List<FileInfo>();
 
-                     string root = di.FullName.Replace(installDir + @"\ProjectPonyville", "");
+                     string root = di.FullName.Replace(installDir + @"\" + currGame.ToString(), "");
 
                      for (int i = 0; i < Folders.Length; i++)
                      {
-                         fa.Folders.Add(Folders[i].FullName.Replace(installDir + @"\ProjectPonyville", ""));
+                         fa.Folders.Add(Folders[i].FullName.Replace(installDir + @"\" + currGame.ToString(), ""));
                      }
 
                      for (int i = 0; i < di.GetFiles().Length; i++) //Loop for root folder
                      {
-                         string file = "\\" + di.GetFiles("*.*", SearchOption.TopDirectoryOnly)[i].Name;
+                         string file = "\\" + di.GetFiles(" *.*", SearchOption.TopDirectoryOnly)[i].Name;
                          string hash = ByteArrayToString(MD5Hash(di.GetFiles("*.*", SearchOption.TopDirectoryOnly)[i]));
 
                          if (!fa.Files.ContainsKey(file))
@@ -904,7 +912,7 @@ namespace ProjectPonyvilleLauncher
                          for (int j = 0; j < Folders[i].GetFiles("*.*", SearchOption.AllDirectories).Length; j++)
                          {
                              Thread.Sleep(1);
-                             string file = Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].DirectoryName.Replace(installDir + @"\ProjectPonyville", "") + "\\" + Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].Name;
+                             string file = Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].DirectoryName.Replace(installDir + @"\" + currGame.ToString(), "") + "\\" + Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j].Name;
                              string hash = ByteArrayToString(MD5Hash(Folders[i].GetFiles("*.*", SearchOption.AllDirectories)[j]));
 
                              if (!fa.Files.ContainsKey(file))
@@ -958,7 +966,7 @@ namespace ProjectPonyvilleLauncher
 
         private void CheckEmptyServer()
         {
-            if (Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Server", null) == null)
+            if (Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + currGame.ToString(), "Server", null) == null)
             {
                 MessageBox.Show("Please select server in Settings.");
 
@@ -968,7 +976,7 @@ namespace ProjectPonyvilleLauncher
                 }
             }
 
-            if (Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Server", null) == null)
+            if (Registry.GetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + currGame.ToString(), "Server", null) == null)
             {
                 CheckEmptyServer();
             }
@@ -1027,7 +1035,7 @@ namespace ProjectPonyvilleLauncher
             UpdateStateText();
             progressBar1.Style = ProgressBarStyle.Marquee;
 
-            await UnZipThread();
+            //await UnZipThread();
 
             if (bTryInstallPrerequisites == true)
             {
@@ -1036,11 +1044,11 @@ namespace ProjectPonyvilleLauncher
 
             progressBar1.Style = ProgressBarStyle.Continuous;
 
-            if (currGame == Game.ProjectPonyville)
-            {
-                Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\ProjectPonyville", "Version", VersionLabel.Text);
-                GetRegVersion();
-            }
+            //if (currGame == Game.ProjectPonyville)
+            //{
+            Registry.SetValue("HKEY_CURRENT_USER\\Software\\RainbowTeamPL\\" + currGame.ToString(), "Version", VersionLabel.Text);
+            GetRegVersion();
+            //}
 
             updateState = UpdateState.Idle;
             UpdateStateText();
@@ -1053,14 +1061,14 @@ namespace ProjectPonyvilleLauncher
             UnlockButton();
         }
 
-        private Task UnZipThread()
-        {
-            if (currGame == Game.ProjectPonyville)
-            {
-                return Task.Run(() => { UnZip(Application.StartupPath + @"\Temp\ProjectPonyville.7z", installDir + @"\ProjectPonyville\"); });
-            }
-            return null;
-        }
+        //private Task UnZipThread()
+        //{
+        //    if (currGame == Game.ProjectPonyville)
+        //    {
+        //        return Task.Run(() => { UnZip(Application.StartupPath + @"\Temp\ProjectPonyville.7z", installDir + @"\ProjectPonyville\"); });
+        //    }
+        //    return null;
+        //}
 
         #region leftover
 
@@ -1186,10 +1194,10 @@ namespace ProjectPonyvilleLauncher
             bTryInstallPrerequisites = true;
             _isInstalling = true;
 
-            if (currGame == Game.ProjectPonyville)
-            {
-                ProjectPonyvilleMajor();
-            }
+            //if (currGame == Game.ProjectPonyville)
+            //{
+            GameMajor();
+            //}
         }
 
         private void TryInstallPrerequisites()
@@ -1197,15 +1205,15 @@ namespace ProjectPonyvilleLauncher
             updateState = UpdateState.InstallingPrerequisites;
             UpdateStateText();
 
-            if (currGame == Game.ProjectPonyville)
+            //if (currGame == Game.ProjectPonyville)
+            //{
+            ProcessStartInfo prereq = new ProcessStartInfo(Application.StartupPath + @"\" + currGame.ToString() + @"\_Redist\install_redist.cmd");
+            try
             {
-                ProcessStartInfo prereq = new ProcessStartInfo(Application.StartupPath + @"\ProjectPonyville\_Redist\install_redist.cmd");
-                try
-                {
-                    Process.Start(prereq).WaitForExit();
-                }
-                catch { }
+                Process.Start(prereq).WaitForExit();
             }
+            catch { }
+            //}
         }
 
         private void InstallBtn_Click(object sender, EventArgs e)
@@ -1241,11 +1249,11 @@ namespace ProjectPonyvilleLauncher
 
         private void PlayGame()
         {
-            if (currGame == Game.ProjectPonyville)
-            {
-                ProcessStartInfo game = new ProcessStartInfo(installDir + @"\ProjectPonyville\ProjectPonyville.exe", "-game");
-                Process.Start(game);
-            }
+            //if (currGame == Game.ProjectPonyville)
+            //{
+            ProcessStartInfo game = new ProcessStartInfo(installDir + @"\" + currGame.ToString() + @"\" + currGame.ToString() + @".exe", "-game");
+            Process.Start(game);
+            //}
 
             this.WindowState = FormWindowState.Minimized;
         }
@@ -1254,11 +1262,12 @@ namespace ProjectPonyvilleLauncher
         {
             updateState = UpdateState.Patching;
 
-            for (int i = 0; i < changedItems.Count; i++)
-            {
-                _downloadqueue.Enqueue(changedItems[0]);
-                changedItems.RemoveAt(0); //TODO: POSSIBLE LOGIC BREAK FIXED(wrong index numbers)
-            }
+            //for (int i = 0; i < changedItems.Count; i++)
+            //{
+            //_downloadqueue.Enqueue(changedItems.Dequeue());
+            _downloadqueue = changedItems;
+            //changedItems.RemoveAt(0); //TODO: POSSIBLE LOGIC BREAK FIXED(wrong index numbers)
+            //}
 
             _isInstalling = true;
 
@@ -1387,7 +1396,8 @@ namespace ProjectPonyvilleLauncher
 
         private static byte[] MD5Hash(FileInfo first)
         {
-            byte[] firstHash = MD5.Create().ComputeHash(first.OpenRead());
+            BufferedStream bs = new BufferedStream(first.OpenRead(), 1200000);
+            byte[] firstHash = MD5.Create().ComputeHash(bs);
 
             return firstHash;
         }
@@ -1441,7 +1451,7 @@ namespace ProjectPonyvilleLauncher
             {
                 (request as HttpWebRequest).KeepAlive = false;
                 (request as HttpWebRequest).ProtocolVersion = System.Net.HttpVersion.Version10;
-                (request as HttpWebRequest).UserAgent = "Launcher";
+                (request as HttpWebRequest).UserAgent = "RTPL Launcher";
             }
             return request;
         }
